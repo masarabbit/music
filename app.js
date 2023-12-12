@@ -1,14 +1,20 @@
 function init() {
 
+  const settings = {
+    timeline: {
+      el: document.querySelector('.timeline'),
+      y: 0,
+      timer: null
+    },
+    blocks: [],
+  }
+
   const elements = {
     // audios: document.querySelectorAll('audio'),
     buttons: document.querySelectorAll('.btn'),
     sprites: document.querySelectorAll('.sprite'),
     tracks: document.querySelectorAll('.track'),
-    timeline: {
-      el: document.querySelector('.timeline'),
-      y: 0,
-    },
+
     playButton: document.querySelector('.play'),
   }
 
@@ -21,6 +27,7 @@ function init() {
     if (isNo(h)) el.style.height = px(h * m)
     el.style.transform = `translate(${x ? px(x) : 0}, ${y ? px(y) : 0})`
   }
+  const nearestN = (n, denom) => n === 0 ? 0 : (n - 1) + Math.abs(((n - 1) % denom) - denom)
 
   const setPos = ({ el, x, y }) => Object.assign(el.style, { left: `${x}px`, top: `${y}px` })
 
@@ -96,7 +103,7 @@ function init() {
     if (index > -1) playSound(singers[index])
   })
 
-  elements.tracks.forEach(track => {
+  elements.tracks.forEach((track, i) => {
     track.addEventListener('click', e => {
       // const { top: timelineTop, left: timelineLeft } = elements.timeline.getBoundingClientRect()
       const { top } = track.getBoundingClientRect()
@@ -107,20 +114,38 @@ function init() {
           className: 'block',
         }),
         // x: track.left,
-        y: e.pageY - top - window.scrollY
+        y: e.pageY - top - window.scrollY,
+        singer: singers[i]
       }
       setPos(block)
       track.appendChild(block.el)
+      settings.blocks.push(block)
       console.log(block, track)
     })
   })
 
+  const playTracks = () => {
+    settings.timeline.y -= 10
+    setPos(settings.timeline)
+    // console.log(settings.timeline)
+    settings.blocks.forEach(block => {
+      if (nearestN(block.y, 10) === (settings.timeline.y * -1)) {
+        console.log('trigger')
+        playSound(block.singer)
+      }
+    })
+    if (settings.timeline.y > -400) {
+      settings.timeline.timer = setTimeout(()=> {
+        playTracks()
+      }, 100)
+    } else {
+      settings.timeline.y = 0
+      setPos(settings.timeline)
+    }
+  }
+
   elements.playButton.addEventListener('click', ()=> {
-
-    elements.timeline.y -= 10
-    setPos(elements.timeline)
-
-    console.log('play', elements.timeline.x)
+    playTracks()
   })
 
     
