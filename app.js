@@ -55,7 +55,11 @@ function init() {
     }
   })
 
-
+  const removeBlock = block => {
+    block.singer.track.removeChild(block.el)
+    settings.blocks = settings.blocks.filter(b => b !== block)
+    updateQueryParam()
+  }
 
   singers.forEach(singer => {
     singer.el = singer.note.childNodes[1].childNodes[1]
@@ -80,11 +84,7 @@ function init() {
       settings.blocks.push(block)
       updateQueryParam()
 
-      block.el.addEventListener('click', ()=> {
-        singer.track.removeChild(block.el)
-        settings.blocks = settings.blocks.filter(b => b !== block)
-        updateQueryParam()
-      })
+      block.el.addEventListener('click', ()=> removeBlock(block))
       // console.log(block, track)
     })
 
@@ -150,7 +150,6 @@ function init() {
   settings.playButton.addEventListener('click', playTracks)
 
   const query = window.location.hash
-
   if (query) {
     const blocks = query.replace('#','').split('.')
     settings.blocks = blocks.map(block => {
@@ -167,9 +166,9 @@ function init() {
     settings.blocks.forEach(block => {
       setPos(block)
       block.singer.track.appendChild(block.el)
+
+      block.el.addEventListener('click', ()=> removeBlock(block))
     })
- 
-    console.log(blocks)
   }
 }
 
