@@ -7,20 +7,12 @@ function init() {
       timer: null
     },
     blocks: [],
-  }
-
-  const elements = {
-    // audios: document.querySelectorAll('audio'),
-    buttons: document.querySelectorAll('.btn'),
-    sprites: document.querySelectorAll('.sprite'),
-    tracks: document.querySelectorAll('.track'),
-
+    singersWrapper: document.querySelector('.singers-wrapper'),
     playButton: document.querySelector('.play'),
   }
 
   const isNo = x => typeof x === 'number'
   const px = n => `${n}px`
-  // const setPos = ({ el, x, y }) => Object.assign(el.style, { left: `${x}px`, top: `${y}px` })
   const setStyles = ({ el, x, y, w, h, d }) => {
     const m = d || 1
     if (isNo(w)) el.style.width = px(w * m)
@@ -28,47 +20,78 @@ function init() {
     el.style.transform = `translate(${x ? px(x) : 0}, ${y ? px(y) : 0})`
   }
   const nearestN = (n, denom) => n === 0 ? 0 : (n - 1) + Math.abs(((n - 1) % denom) - denom)
-
   const setPos = ({ el, x, y }) => Object.assign(el.style, { left: `${x}px`, top: `${y}px` })
 
   const singers = [
-    {
-      el: elements.sprites[0],
+    { sound: 'do' },
+    { sound: 're' },
+    { sound: 'mi' },
+    { sound: 'fa' },
+    { sound: 'so' },
+    { sound: 'ra' },
+    { sound: 'shi' },
+    { sound: 'do_' },
+  ].map(singer => {
+    const { sound } = singer
+    return  {
+      note: Object.assign(document.createElement('div'), 
+        { 
+          className: 'note',
+          innerHTML: `
+          <div class="sprite-container">
+            <div class="re sprite singer"></div>
+          </div>
+          <button class="btn">${sound.replace('_','')}</button>
+          <audio src="./assets/${sound}.wav" preload="auto">`
+        }),
       x: 0,
       y: 0,
-      frames: [0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 1, 0],
+      frames: singer.frames || [0, 1, 2, 3, 3, 3, 1, 0],
       frameCount: 0,
       timer: null,
-      sound: 'ahh.wav'
-    },
-    {
-      el: elements.sprites[1],
-      x: 0,
-      y: 0,
-      frames: [0, 1, 2, 3, 3, 3, 1, 0],
-      frameCount: 0,
-      timer: null,
-      sound: 'meow.wav'
-    },
-    {
-      el: elements.sprites[2],
-      x: 0,
-      y: 0,
-      frames: [0, 0, 0, 3, 3, 3, 3, 3, 2, 0],
-      frameCount: 0,
-      timer: null,
-      sound: 'nooo.wav'
-    },
-    {
-      el: elements.sprites[3],
-      x: 0,
-      y: 0,
-      frames: [0, 1, 2, 3, 3, 1, 0],
-      frameCount: 0,
-      timer: null,
-      sound: 'oh.wav'
+      sound,
+      track: Object.assign(document.createElement('div'), 
+        { className: 'track' }),
     }
-  ]
+  })
+
+
+
+  singers.forEach(singer => {
+    singer.el = singer.note.childNodes[1].childNodes[1]
+    singer.btns = singer.note.childNodes[3]
+    settings.singersWrapper.appendChild(singer.note)
+    settings.timeline.el.appendChild(singer.track)
+
+    singer.track.addEventListener('click', e => {
+      if (e.target.classList[0] === 'block') return
+
+      const { top } = singer.track.getBoundingClientRect()
+      const block = {
+        el: Object.assign(document.createElement('div'), { 
+          className: 'block',
+        }),
+        // x: track.left,
+        y: nearestN(e.pageY - top - window.scrollY, 10),
+        singer: singer
+      }
+      setPos(block)
+      singer.track.appendChild(block.el)
+      settings.blocks.push(block)
+      updateQueryParam()
+
+      block.el.addEventListener('click', ()=> {
+        singer.track.removeChild(block.el)
+        settings.blocks = settings.blocks.filter(b => b !== block)
+        updateQueryParam()
+      })
+      // console.log(block, track)
+    })
+
+    singer.btns.addEventListener('click', ()=> playSound(singer))
+  })
+
+
 
   const animateSprite = singer => {
     const { frames, frameCount } = singer
@@ -86,55 +109,31 @@ function init() {
 
   const playSound = singer => {
     const audio = document.createElement('audio')
-    audio.src = `./assets/${singer.sound}`
+    audio.src = `./assets/${singer.sound}.wav`
     clearTimeout(singer.timer)
     singer.frameCount = 0
     animateSprite(singer)
     audio.play()
   }
 
-  elements.buttons.forEach((btn, i) => {
-    btn.addEventListener('click', ()=> playSound(singers[i]))
-  })
-
 
   window.addEventListener('keydown', e => {
-    const index = 'qwer'.indexOf(e.key.toLowerCase())
+    const index = 'qwertyui'.indexOf(e.key.toLowerCase())
     if (index > -1) playSound(singers[index])
   })
 
-  elements.tracks.forEach((track, i) => {
-    track.addEventListener('click', e => {
-      // const { top: timelineTop, left: timelineLeft } = elements.timeline.getBoundingClientRect()
-      const { top } = track.getBoundingClientRect()
-      // console.log(timelineLeft - left )
-
-      const block = {
-        el: Object.assign(document.createElement('div'), { 
-          className: 'block',
-        }),
-        // x: track.left,
-        y: e.pageY - top - window.scrollY,
-        singer: singers[i]
-      }
-      setPos(block)
-      track.appendChild(block.el)
-      settings.blocks.push(block)
-      console.log(block, track)
-    })
-  })
 
   const playTracks = () => {
     settings.timeline.y -= 10
     setPos(settings.timeline)
-    // console.log(settings.timeline)
+    // console.log(settings.blocks)
     settings.blocks.forEach(block => {
-      if (nearestN(block.y, 10) === (settings.timeline.y * -1)) {
+      if (block.y === (settings.timeline.y * -1)) {
         console.log('trigger')
         playSound(block.singer)
       }
     })
-    if (settings.timeline.y > -400) {
+    if (settings.timeline.y > -900) {
       settings.timeline.timer = setTimeout(()=> {
         playTracks()
       }, 100)
@@ -144,11 +143,34 @@ function init() {
     }
   }
 
-  elements.playButton.addEventListener('click', ()=> {
-    playTracks()
-  })
+  const updateQueryParam = () => {
+    window.location = `#${settings.blocks.map(b => b && `${b.y / 10}${b.singer.sound}`).join('.')}`
+  }
 
-    
+  settings.playButton.addEventListener('click', playTracks)
+
+  const query = window.location.hash
+
+  if (query) {
+    const blocks = query.replace('#','').split('.')
+    settings.blocks = blocks.map(block => {
+      const sound = block.split('').filter(x => x * 0 !== 0).join('')
+      const time = block.split('').filter(x => x * 0 === 0).join('') || 1
+      return {
+        el: Object.assign(document.createElement('div'), { 
+          className: 'block',
+        }),
+        y: +time * 10,
+        singer: singers.find(singer => singer.sound === sound)
+      }
+    })
+    settings.blocks.forEach(block => {
+      setPos(block)
+      block.singer.track.appendChild(block.el)
+    })
+ 
+    console.log(blocks)
+  }
 }
 
 window.addEventListener('DOMContentLoaded', init)

@@ -1,5 +1,16 @@
 {
-  "liveServer.settings.port": 5508,
-  // "workbench.colorTheme": "Kawaii Theme" 
-  "editor.fontLigatures": true,
+  "workbench.startupEditor": "none",
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.colorTheme": "Tokyo Night",
+    "githubPullRequests.fileListLayout": "flat",
+    "editor.wordWrap": "on",
+    "liveServer.settings.donotShowInfoMsg": true,
+    "editor.fontFamily": "Fira Code",
+    "git.confirmSync": false,
+    "githubPullRequests.pullBranch": "never",
+    "git.mergeEditor": false,
+    "editor.fontLigatures": true,
+    "workbench.editor.enablePreview": false
 }
