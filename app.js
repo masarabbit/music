@@ -28,38 +28,46 @@ function init() {
   const singers = [
     { 
       sound: 'do',
-      frames: [0, 1, 2, 4, 4, 5, 0] 
+      frames: [0, 1, 2, 4, 4, 5, 0],
+      key: 'c' 
     },
     { 
       sound: 're',
-      frames: [0, 1, 2, 6, 6, 6, 0]
+      frames: [0, 1, 2, 6, 6, 6, 0],
+      key: 'd' 
     },
     { 
       sound: 'mi',
-      frames: [0, 1, 6, 6, 6, 6, 0] 
+      frames: [0, 1, 6, 6, 6, 6, 0],
+      key: 'e'  
     },
     { 
       sound: 'fa',
-      frames: [0, 1, 2, 3, 3, 3, 1, 0]  
+      frames: [0, 1, 2, 3, 3, 3, 1, 0],
+      key: 'f'  
     },
     { 
       sound: 'so',
-      frames: [0, 1, 2, 4, 4, 5, 0] 
+      frames: [0, 1, 2, 4, 4, 5, 0],
+      key: 'g'  
     },
     { 
-      sound: 'ra',
-      frames: [0, 1, 2, 3, 3, 3, 1, 0]  
+      sound: 'la',
+      frames: [0, 1, 2, 3, 3, 3, 1, 0],
+      key: 'a'  
     },
     { 
       sound: 'ti',
-      frames: [0, 1, 6, 6, 6, 6, 0] 
+      frames: [0, 1, 6, 6, 6, 6, 0],
+      key: 'b' 
     },
     { 
       sound: 'do_',
-      frames: [0, 1, 2, 4, 4, 4, 5, 0] 
+      frames: [0, 1, 2, 4, 4, 4, 5, 0],
+      key: 'c_' 
     },
   ].map(singer => {
-    const { sound } = singer
+    const { sound, key } = singer
     return  {
       note: Object.assign(document.createElement('div'), 
         { 
@@ -77,6 +85,7 @@ function init() {
       frameCount: 0,
       timer: null,
       sound,
+      key,
       track: Object.assign(document.createElement('div'), 
         { className: 'track' }),
     }
@@ -189,7 +198,7 @@ function init() {
 
 
   const updateQueryParam = () => {
-    window.location = `#${settings.timeline.h}${settings.blocks.length ? '#' : ''}${settings.blocks.map(b => b && `${b.y / 10}${b.singer.sound}`).join('.')}`
+    window.location = `#${settings.timeline.h}${settings.blocks.length ? '#' : ''}${settings.blocks.map(b => b && `${b.y / 10}${b.singer.key}`).join('.')}`
   }
 
   const query = window.location.hash
@@ -202,14 +211,14 @@ function init() {
     console.log(queryArray)
     if (blocks.length) {
       settings.blocks = blocks.map(block => {
-        const sound = block.split('').filter(x => x * 0 !== 0).join('')
+        const key = block.split('').filter(x => x * 0 !== 0).join('')
         const time = block.split('').filter(x => x * 0 === 0).join('') || 1
         return {
           el: Object.assign(document.createElement('div'), { 
-            className: `block ${sound.replace('_', '')}`,
+            className: `block ${key.replace('_', '')}`,
           }),
           y: +time * 10,
-          singer: singers.find(singer => singer.sound === sound)
+          singer: singers.find(singer => singer.key === key)
         }
       })
       settings.blocks.forEach(block => {
