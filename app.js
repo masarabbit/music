@@ -100,10 +100,9 @@ function init() {
       const { top } = singer.track.getBoundingClientRect()
       const block = {
         el: Object.assign(document.createElement('div'), { 
-          className: 'block',
+          className: `block ${singer.sound.replace('_', '')}`,
         }),
-        // x: track.left,
-        y: nearestN(e.pageY - top - window.scrollY, 20),
+        y: nearestN(e.pageY - top - window.scrollY, 20) - 20,
         singer: singer
       }
       setPos(block)
@@ -114,7 +113,6 @@ function init() {
       block.el.addEventListener('click', ()=> removeBlock(block))
       // console.log(block, track)
     })
-
     singer.btns.addEventListener('click', ()=> playSound(singer))
   })
 
@@ -157,16 +155,16 @@ function init() {
         clearTimeout(settings.timeline.timer)
         if (!settings.blocks.length) return
       }
-      settings.timeline.y -= 10
-      setPos(settings.timeline)
       // console.log(settings.blocks)
       settings.blocks.forEach(block => {
         if (block.y === (settings.timeline.y * -1)) playSound(block.singer)
       })
+      settings.timeline.y -= 20
+      setPos(settings.timeline)
       if (settings.timeline.y > (-1 * settings.timeline.h)) {
         settings.timeline.timer = setTimeout(()=> {
           control.playTracks(true)
-        }, 100)
+        }, 400)
       } else {
         settings.timeline.y = 0
         setPos(settings.timeline)
@@ -206,7 +204,7 @@ function init() {
         const time = block.split('').filter(x => x * 0 === 0).join('') || 1
         return {
           el: Object.assign(document.createElement('div'), { 
-            className: 'block',
+            className: `block ${sound.replace('_', '')}`,
           }),
           y: +time * 10,
           singer: singers.find(singer => singer.sound === sound)
