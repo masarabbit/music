@@ -159,12 +159,12 @@ function init() {
       settings.blocks.forEach(block => {
         if (block.y === (settings.timeline.y * -1)) playSound(block.singer)
       })
-      settings.timeline.y -= 20
+      settings.timeline.y -= 10
       setPos(settings.timeline)
       if (settings.timeline.y > (-1 * settings.timeline.h)) {
         settings.timeline.timer = setTimeout(()=> {
           control.playTracks(true)
-        }, 400)
+        }, 200)
       } else {
         settings.timeline.y = 0
         setPos(settings.timeline)
@@ -194,11 +194,13 @@ function init() {
 
   const query = window.location.hash
   const queryArray = query.split('#')
+  console.log(queryArray)
   if (queryArray.length > 2) {
     const blocks = queryArray[2].split('.')
     settings.timeline.h = +queryArray[1]
     setStyles(settings.timeline)
-    if (settings.blocks.length) {
+    console.log(queryArray)
+    if (blocks.length) {
       settings.blocks = blocks.map(block => {
         const sound = block.split('').filter(x => x * 0 !== 0).join('')
         const time = block.split('').filter(x => x * 0 === 0).join('') || 1
