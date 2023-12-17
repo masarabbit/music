@@ -53,9 +53,7 @@ body {
 
 .note {
   text-align: center;
-  width: 50px;
-  display: flex;
-  justify-content: center;
+  width: 32px;
 }
 
 .sprite-container {
@@ -66,7 +64,7 @@ body {
   height: var(--c);
   z-index: 1;
   overflow: hidden;
-  /* margin-left: -4px; */
+  margin-left: -4px;
 }
 
 .sprite  {
@@ -103,34 +101,29 @@ body {
 
 .track {
   position: relative;
-  width: 50px;
+  width: 32px;
   height: 100%;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAKCAYAAAB10jRKAAAAAXNSR0IArs4c6QAAABdJREFUGFdjeP/+/X8GbMTjx4//M2AhAKuDJUWwY+8jAAAAAElFTkSuQmCC);
-  background-size: 1px 60px; 
+  background-size: 1px 40px; 
   background-repeat: repeat;
   image-rendering: pixelated;
 }
 
 .block {
   position: absolute;
-  --w: 50px;
-  --h: 30px;
+  --w: 32px;
+  --h: 20px;
   width: var(--w);
   height: var(--h);
   /* background-color: rgb(141, 141, 141); */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAPCAYAAAARZmTlAAAAAXNSR0IArs4c6QAAAEtJREFUOE9jZECA/0hsajEZQQaBCQYGhv///1PfDkZGiB0gkiYWwIICZNGoJUQnjNHgIjqoIOl3NHWREGB0DS66lF0wz1O/hIQWwAAnajYFXsfTYQAAAABJRU5ErkJggg==);
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAKCAYAAAC9vt6cAAAAAXNSR0IArs4c6QAAADpJREFUKFNjZECA/0hsYpiMIEVggoGB4f///6TpZ2SE6AeRJGuGOQ9kyKgBVAoDiqMRFiukJQRoGgIAmAoiBUOfT6EAAAAASUVORK5CYII=);
   background-size: var(--w) var(--h); 
   background-repeat: repeat;
   image-rendering: pixelated;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
-  font-size: 0.7em;
-}
-
-.block * {
-  pointer-events: none;
+  font-size: 0.8em;
 }
 
 button:not(.btn) {

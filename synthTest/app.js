@@ -1,11 +1,9 @@
 function init() {
 
   const inputs = {
-    oscType: document.querySelector('#oscillator-type'),
+    oscillatorType: document.querySelector('#oscillator-type'),
     note: document.querySelector('#note'),
     octave: document.querySelector('#octave'),
-    snare: document.querySelector('#snare'),
-    speed: document.querySelector('#speed'),
   }
   const elements = {
     singersWrapper: document.querySelector('.singers-wrapper'),
@@ -16,24 +14,24 @@ function init() {
       timer: null
     },
     oscillator: null,
+    // playBtn: document.querySelector('.play'),
+    // snareBtn: document.querySelector('.snare'),
     btns: document.querySelectorAll('.btn'),
     indicator: document.querySelector('.indicator'),
   }
 
   const settings = {
     blocks: [],
-    oscTypes: [
+    oscillatorTypes: [
       'sine',
       'triangle',
       'square',
       'sawtooth',
     ],
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
-    oscType: 'sine',
+    oscillatorType: 'sine',
     note: 'c',
     octave: 5,
-    snare: false,
-    speed: 200
   }
 
   const isNo = x => typeof x === 'number'
@@ -60,7 +58,7 @@ function init() {
     frequency: 1000,
     // Q: 100,
   })
-  // console.log(filterNode)
+  console.log(filterNode)
   const gainNode = ctx.createGain()
   const buffer = ctx.createBuffer(1, ctx.sampleRate * 1, ctx.sampleRate)
 
@@ -69,7 +67,7 @@ function init() {
     channelData[i] = Math.random() * 2 - 1
   })
   
-  const keys = Array(8).fill('').map((_, i) => {
+  const keys = settings.notes.map(key => {
     return  {
       note: Object.assign(document.createElement('div'), 
         { 
@@ -77,15 +75,15 @@ function init() {
           innerHTML: `
           <div class="sprite-container">
             <div class="sprite singer"></div>
-          </div>`
+          </div>
+          <button>${key}</button>`
         }),
       x: 0,
       y: 0,
       frames: [0, 1, 2, 4, 4, 4, 5, 0],
       frameCount: 0,
       timer: null,
-      id: i,
-      // key,
+      key,
       track: Object.assign(document.createElement('div'), 
         { className: 'track' }),  
     }
@@ -99,7 +97,7 @@ function init() {
       singer.timer = setTimeout(()=> {
         singer.frameCount += 1
         animateSprite(singer)
-      }, settings.speed / 2)
+      }, 100)
     } else {
       singer.frameCount = 0
     }
@@ -108,76 +106,48 @@ function init() {
   const removeBlock = block => {
     block.key.track.removeChild(block.el)
     settings.blocks = settings.blocks.filter(b => b !== block)
-    updateQueryParam()
+    // updateQueryParam()
   }
 
   keys.forEach(key => {
     key.el = key.note.childNodes[1].childNodes[1]
-    // key.btn = key.note.childNodes[3]
+    key.btn = key.note.childNodes[3]
     elements.singersWrapper.appendChild(key.note)
     elements.timeline.el.appendChild(key.track)
 
     key.track.addEventListener('click', e => {
       if (e.target.classList[0] === 'block') return
-      const { note, octave, oscType, snare } = settings
+
       const { top } = key.track.getBoundingClientRect()
-      const block = snare 
-        ? {
-          el: Object.assign(document.createElement('div'), { 
-            className: 'block',
-            innerHTML: 'snare',
-          }),
-          key,
-          snare
-        }
-        : {
-          el: Object.assign(document.createElement('div'), { 
-            className: 'block',
-            innerHTML: `
-            <p>${note} ${octave}</p>
-            <p>${oscType}</p>
-            `,
-          }),
-          note,
-          octave,
-          oscType,
-          key,
-          snare
-        }
-      block.y = nearestN(e.pageY - top - window.scrollY, 30) - 30,
-      block.key.frames = snare 
-        ? [0, 1, 6, 6, 6, 6, 0]
-        : [0, 1, 2, 4, 4, 4, 5, 0]
+      const block = {
+        el: Object.assign(document.createElement('div'), { 
+          className: `block ${key.key}`,
+          innerHTML: `${key.key}`,
+        }),
+        y: nearestN(e.pageY - top - window.scrollY, 20) - 20,
+        key,
+      }
       setPos(block)
       key.track.appendChild(block.el)
       settings.blocks.push(block)
-      updateQueryParam()
+      // updateQueryParam()
 
       block.el.addEventListener('click', ()=> removeBlock(block))
+      // console.log(block, track)
     })
-    // key.btn.addEventListener('click', ()=> playKey(key))
+
+    key.btn.addEventListener('click', ()=> playKey(key))
   })
 
   const snare = () => {
     const whiteNoiseSrc = ctx.createBufferSource()
     whiteNoiseSrc.buffer = buffer
-    // whiteNoiseSrc.connect(filterNode)
-    // filterNode.connect(gainNode)
-    whiteNoiseSrc.connect(gainNode)
+    whiteNoiseSrc.connect(filterNode)
+    filterNode.connect(gainNode)
     gainNode.gain.setValueAtTime(0.5, 0)
     gainNode.connect(ctx.destination)
     whiteNoiseSrc.start()
     whiteNoiseSrc.stop(ctx.currentTime + 0.5)
-  }
-
-  const updateQueryParam = () => {
-    window.location = `#${elements.timeline.h}${settings.blocks.length ? '#' : ''}${settings.blocks.map(b => {
-      if (!b) return
-      const sound = b.snare 
-        ? 'sn'
-        : `${b.note.replace('#','$')}_${b.octave}_${b.oscType}`
-      return `${b.y / 10}_${sound}_${b.key.id}`
-    }).join('.')}`
   }
 
 
@@ -185,7 +155,7 @@ function init() {
   const playSound = () => {
     elements.oscillator = ctx.createOscillator()
     const { note, octave } = settings
-    elements.oscillator.type = settings.oscType
+    elements.oscillator.type = settings.oscillatorType
     elements.oscillator.frequency.value = getFrequency(note, octave)
 
     gainNode.gain.setValueAtTime(1, 0)
@@ -198,20 +168,17 @@ function init() {
     elements.oscillator.stop(ctx.currentTime + 0.5)
   }
 
-  const playBlock = block => {
-    animateSprite(block.key)
-    if (block.snare) {
-      control.snare()
-      return
-    }
+  const playKey = note => {
+    animateSprite(note)
     // const ctx = new AudioContext()
     const oscillator = ctx.createOscillator()
     const gainNode = ctx.createGain()
 
-    oscillator.type = block.oscType
-    oscillator.frequency.value = getFrequency(block.note, block.octave)
+    oscillator.type = settings.oscillatorType
+    oscillator.frequency.value = getFrequency(note.key, settings.octave)
 
     gainNode.gain.setValueAtTime(0.5, 0)
+
     gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
 
     oscillator.connect(gainNode)
@@ -230,15 +197,16 @@ function init() {
       clearTimeout(elements.timeline.timer)
       if (!settings.blocks.length) return
     }
+    // console.log(settings.blocks)
     settings.blocks.forEach(block => {
-      if (block.y === (elements.timeline.y * -1)) playBlock(block)
+      if (block.y === (elements.timeline.y * -1)) playKey(block.key)
     })
     elements.timeline.y -= 10
     setPos(elements.timeline)
     if (elements.timeline.y > (-1 * elements.timeline.h)) {
       elements.timeline.timer = setTimeout(()=> {
         control.playTracks(true)
-      }, settings.speed)
+      }, 200)
     } else {
       elements.timeline.y = 0
       setPos(elements.timeline)
@@ -252,17 +220,17 @@ function init() {
     delete: () => {
       keys.forEach(key => key.track.innerHTML = '')
       settings.blocks = []
-      updateQueryParam()
+      // updateQueryParam()
     },
     extend: () => {
       elements.timeline.h += 100
       setStyles(elements.timeline)
-      updateQueryParam()
+      // updateQueryParam()
     },
     shorten: () => {
       elements.timeline.h -= 100
       setStyles(elements.timeline)
-      updateQueryParam()
+      // updateQueryParam()
     }
   }
   
@@ -278,76 +246,24 @@ function init() {
     elements.indicator.innerHTML = Object.keys(inputs).map(input => settings[input]).join(' | ')
   }
 
-  inputs.oscType.innerHTML = settings.oscTypes.map(type => {
+  inputs.oscillatorType.innerHTML = settings.oscillatorTypes.map(type => {
     return `<option value="${type}">${type}</option>`
   })
   inputs.note.innerHTML = settings.notes.map(note => {
     return `<option value="${note}">${note}</option>`
   })
 
-  inputs.oscType.addEventListener('change', e => {
-    settings.oscType = +e.target.value
+  inputs.oscillatorType.addEventListener('change', e => {
+    settings.oscillatorType = +e.target.value
     updateIndicator()
   })
 
   Object.keys(inputs).forEach(input => {
     inputs[input].addEventListener('change', e => {
-      settings[input] = input === 'snare' 
-        ? !settings[input]
-        : e.target.value
+      settings[input] = e.target.value
       updateIndicator()
     })
   })
-
-  const query = window.location.hash
-  const queryArray = query.split('#')
-  if (queryArray.length > 2) {
-    const blocks = queryArray[2].split('.')
-    elements.timeline.h = +queryArray[1]
-    setStyles(elements.timeline)
-    if (blocks.length) {
-      settings.blocks = blocks.map(block => {
-        const blockArr = block.split('_')
-        const snare = blockArr[1] === 'sn'
-        const y = +blockArr[0] * 10
-        
-        if (snare) {
-          return {
-            el: Object.assign(document.createElement('div'), { 
-              className: 'block',
-              innerHTML: 'snare',
-            }),
-            snare,
-            key: keys[+blockArr[2]],
-            y
-          }
-        }
-        const note = blockArr[1].replace('$','#')
-        const octave = blockArr[2]
-        const oscType = blockArr[3]
-        return {
-          el: Object.assign(document.createElement('div'), { 
-            className: 'block',
-            innerHTML: `
-          <p>${note} ${octave}</p>
-          <p>${oscType}</p>
-          `,
-          }),
-          note: note,
-          octave,
-          oscType,
-          key: keys[+blockArr[4]],
-          snare,
-          y,
-        }
-      })
-      settings.blocks.forEach(block => {
-        setPos(block)
-        block.key.track.appendChild(block.el)
-        block.el.addEventListener('click', ()=> removeBlock(block))
-      })
-    } 
-  }
 
 
 }
