@@ -179,6 +179,15 @@ function init() {
 
     gainNode.gain.setValueAtTime(0.5, 0)
 
+    // const clipPlayTime = 0
+    // const clipLength = 3
+    // gainNode.gain.setValueAtTime(0.01, clipPlayTime)
+    // gainNode.gain.exponentialRampToValueAtTime(1, clipPlayTime + 0.001)
+    // // end of clip
+    // gainNode.gain.setValueAtTime(1, clipPlayTime + clipLength - 0.001)
+    // gainNode.gain.exponentialRampToValueAtTime(0.01, clipPlayTime + clipLength)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
+
     oscillator.connect(gainNode)
     // filterNode.connect(gainNode)
     gainNode.connect(ctx.destination)

@@ -1,6 +1,7 @@
 function init() {
 
   // TODO adjust track height
+  // TODO try this: https://stackoverflow.com/questions/47996114/webaudio-play-sound-pops-at-start-and-end
 
   const settings = {
     timeline: {
