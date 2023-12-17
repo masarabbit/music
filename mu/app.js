@@ -74,7 +74,7 @@ function init() {
           className: 'note',
           innerHTML: `
           <div class="sprite-container">
-            <div class="re sprite singer"></div>
+            <div class="sprite singer"></div>
           </div>
           <button class="btn">${sound.replace('_','')}</button>
           <audio src="./assets/${sound}.wav" preload="auto">`
@@ -99,7 +99,7 @@ function init() {
 
   singers.forEach(singer => {
     singer.el = singer.note.childNodes[1].childNodes[1]
-    singer.btns = singer.note.childNodes[3]
+    singer.btn = singer.note.childNodes[3]
     settings.singersWrapper.appendChild(singer.note)
     settings.timeline.el.appendChild(singer.track)
 
@@ -112,7 +112,7 @@ function init() {
           className: `block ${singer.sound.replace('_', '')}`,
         }),
         y: nearestN(e.pageY - top - window.scrollY, 20) - 20,
-        singer: singer
+        singer
       }
       setPos(block)
       singer.track.appendChild(block.el)
@@ -122,7 +122,7 @@ function init() {
       block.el.addEventListener('click', ()=> removeBlock(block))
       // console.log(block, track)
     })
-    singer.btns.addEventListener('click', ()=> playSound(singer))
+    singer.btn.addEventListener('click', ()=> playSound(singer))
   })
 
 
