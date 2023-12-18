@@ -262,9 +262,7 @@ function init() {
       elements.timeline.y = 0
       setPos(elements.timeline)
       if (settings.loop) {
-        elements.timeline.timer = setTimeout(()=> {
-          control.playTracks()
-        }, settings.speed)
+        control.playTracks()
       }
     }
   }
