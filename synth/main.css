@@ -144,9 +144,10 @@ button:not(.btn) {
 
 .sound-palette-wrapper {
   position: fixed;
+  right: 0;
   bottom: 40px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
 
 .sound-palette {

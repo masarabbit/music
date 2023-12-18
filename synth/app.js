@@ -1,3 +1,5 @@
+//@ts-checkOFF
+
 function init() {
 
   //TODO update param to make oscType shorter
@@ -11,6 +13,7 @@ function init() {
     octave: document.querySelector('#octave'),
     snare: document.querySelector('#snare'),
     speed: document.querySelector('#speed'),
+    loop: document.querySelector('#loop'),
   }
   const elements = {
     singersWrapper: document.querySelector('.singers-wrapper'),
@@ -45,7 +48,8 @@ function init() {
     note: 'c',
     octave: 5,
     snare: false,
-    speed: 200
+    loop: false,
+    speed: 50
   }
 
   const isNo = x => typeof x === 'number'
@@ -173,13 +177,13 @@ function init() {
   const snare = () => {
     const whiteNoiseSrc = ctx.createBufferSource()
     whiteNoiseSrc.buffer = buffer
-    // whiteNoiseSrc.connect(filterNode)
-    // filterNode.connect(gainNode)
+    whiteNoiseSrc.connect(filterNode)
+    filterNode.connect(gainNode)
     whiteNoiseSrc.connect(gainNode)
-    gainNode.gain.setValueAtTime(0.5, 0)
+    gainNode.gain.setValueAtTime(0.1, 0)
     gainNode.connect(ctx.destination)
     whiteNoiseSrc.start()
-    whiteNoiseSrc.stop(ctx.currentTime + 0.5)
+    whiteNoiseSrc.stop(ctx.currentTime + 0.3)
   }
 
   const updateQueryParam = () => {
@@ -213,7 +217,7 @@ function init() {
 
 
 
-  const playBlock = block => {
+  const playBlock = (block, offset) => {
     if (block.key) animateSprite(block.key)
     if (block.snare) {
       control.snare()
@@ -224,7 +228,7 @@ function init() {
     const gainNode = ctx.createGain()
 
     oscillator.type = block.oscType
-    oscillator.frequency.value = getFrequency(block.note, block.octave)
+    oscillator.frequency.value = getFrequency(block.note, block.octave) - (offset || 0)
 
     gainNode.gain.setValueAtTime(settings.volumes[block.oscType], 0)
     gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
@@ -250,13 +254,18 @@ function init() {
     })
     elements.timeline.y -= 10
     setPos(elements.timeline)
-    if (elements.timeline.y > (-1 * elements.timeline.h)) {
+    if (elements.timeline.y >= (-1 * elements.timeline.h)) {
       elements.timeline.timer = setTimeout(()=> {
         control.playTracks(true)
       }, settings.speed)
     } else {
       elements.timeline.y = 0
       setPos(elements.timeline)
+      if (settings.loop) {
+        elements.timeline.timer = setTimeout(()=> {
+          control.playTracks()
+        }, settings.speed)
+      }
     }
   }
 
@@ -307,7 +316,7 @@ function init() {
 
   Object.keys(inputs).forEach(input => {
     inputs[input].addEventListener('change', e => {
-      settings[input] = input === 'snare' 
+      settings[input] = ['snare', 'loop'].includes(input)
         ? !settings[input]
         : e.target.value
       updateIndicator()
@@ -365,13 +374,11 @@ function init() {
   }
 
   const allBlocks = settings.oscTypes.map(oscType => {
-
     return [2, 3, 4, 5].map(octave => {
       return settings.notes.map(note => {
         return {
           el: Object.assign(document.createElement('button'), { 
             className: `sound-button ${note.includes('#') ? 'sharp' : ''}`,
-            // innerHTML: `${oscType}/${note}/${octave}`,
             innerHTML: `${note}`,
           }),
           oscType, 
@@ -382,18 +389,22 @@ function init() {
     }).flat(1)
   })
 
-  console.log(allBlocks)
 
   allBlocks.forEach((type, i) => {
     type.forEach(sound => {
       elements.soundPalettes[i].append(sound.el)
       sound.el.addEventListener('click', ()=> {
         playBlock(sound)
+        // playBlock(sound, -10)
+        // playBlock(sound, 1000)
         ;['note', 'octave', 'oscType'].forEach(key => {
           inputs[key].value = sound[key]
           settings[key] = sound[key]
         })
       })
+      // sound.el.addEventListener('mouseup', ()=> {
+      //   playBlock(sound, 0, true, true)
+      // })
     })
   })
 
