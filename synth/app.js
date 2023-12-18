@@ -44,6 +44,15 @@ function init() {
       sawtooth: 0.2,
     },
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
+    frames: {
+      c: [0, 1, 2, 4, 4, 5, 0],
+      d: [0, 1, 2, 6, 6, 6, 0],
+      e: [0, 1, 6, 6, 6, 6, 0],
+      f: [0, 1, 2, 3, 3, 3, 1, 0],
+      g: [0, 1, 2, 4, 4, 5, 0],
+      a: [0, 1, 2, 3, 3, 3, 1, 0],
+      b: [0, 1, 6, 6, 6, 6, 0],
+    },
     oscType: 'sine',
     note: 'c',
     octave: 5,
@@ -97,7 +106,7 @@ function init() {
         }),
       x: 0,
       y: 0,
-      frames: [0, 1, 2, 4, 4, 4, 5, 0],
+      // frames: [0, 1, 2, 4, 4, 4, 5, 0],
       frameCount: 0,
       timer: null,
       id: i,
@@ -160,10 +169,10 @@ function init() {
           key,
           snare
         }
-      block.y = nearestN(e.pageY - top - window.scrollY, 30) - 30,
+      block.y = nearestN(e.pageY - top - window.scrollY, 30) - 30
       block.key.frames = snare 
         ? [0, 1, 6, 6, 6, 6, 0]
-        : [0, 1, 2, 4, 4, 4, 5, 0]
+        : settings.frames[note[0]]
       setPos(block)
       key.track.appendChild(block.el)
       settings.blocks.push(block)
@@ -277,12 +286,12 @@ function init() {
       updateQueryParam()
     },
     extend: () => {
-      elements.timeline.h += 100
+      elements.timeline.h += 90
       setStyles(elements.timeline)
       updateQueryParam()
     },
     shorten: () => {
-      elements.timeline.h -= 100
+      elements.timeline.h -= 90
       setStyles(elements.timeline)
       updateQueryParam()
     }
@@ -364,6 +373,9 @@ function init() {
         }
       })
       settings.blocks.forEach(block => {
+        block.key.frames = block.snare 
+          ? [0, 1, 6, 6, 6, 6, 0]
+          : settings.frames[block.note[0]]
         setPos(block)
         block.key.track.appendChild(block.el)
         block.el.addEventListener('click', ()=> removeBlock(block))
