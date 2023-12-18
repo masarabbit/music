@@ -142,6 +142,36 @@ button:not(.btn) {
   cursor: pointer;
 }
 
+.sound-palette-wrapper {
+  position: fixed;
+  bottom: 40px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.sound-palette {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.sound-palette button {
+  margin: 1px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  padding: 0 0 10px;
+}
+
+.sound-palette button.sharp {
+  background-color: black;
+  color: white;
+  height: 35px;
+  margin-left: -16px;
+  margin-right: -16px;
+  z-index: 1;
+}
+
 /* other */
 
 .sign {

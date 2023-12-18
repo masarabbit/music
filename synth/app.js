@@ -1,5 +1,10 @@
 function init() {
 
+  //TODO update param to make oscType shorter
+  //TODO add envelope?
+  //TODO add pause / stop
+  //TODO update how tunes are saved? save as json instead of param? Or maybe swap _ and .
+
   const inputs = {
     oscType: document.querySelector('#oscillator-type'),
     note: document.querySelector('#note'),
@@ -18,6 +23,7 @@ function init() {
     oscillator: null,
     btns: document.querySelectorAll('.btn'),
     indicator: document.querySelector('.indicator'),
+    soundPalettes: document.querySelectorAll('.sound-palette')
   }
 
   const settings = {
@@ -28,6 +34,12 @@ function init() {
       'square',
       'sawtooth',
     ],
+    volumes: {
+      sine: 0.7,
+      triangle: 0.7,
+      square: 0.2,
+      sawtooth: 0.2,
+    },
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
     oscType: 'sine',
     note: 'c',
@@ -198,8 +210,11 @@ function init() {
     elements.oscillator.stop(ctx.currentTime + 0.5)
   }
 
+
+
+
   const playBlock = block => {
-    animateSprite(block.key)
+    if (block.key) animateSprite(block.key)
     if (block.snare) {
       control.snare()
       return
@@ -211,7 +226,7 @@ function init() {
     oscillator.type = block.oscType
     oscillator.frequency.value = getFrequency(block.note, block.octave)
 
-    gainNode.gain.setValueAtTime(0.5, 0)
+    gainNode.gain.setValueAtTime(settings.volumes[block.oscType], 0)
     gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
 
     oscillator.connect(gainNode)
@@ -349,6 +364,38 @@ function init() {
     } 
   }
 
+  const allBlocks = settings.oscTypes.map(oscType => {
+
+    return [2, 3, 4, 5].map(octave => {
+      return settings.notes.map(note => {
+        return {
+          el: Object.assign(document.createElement('button'), { 
+            className: `sound-button ${note.includes('#') ? 'sharp' : ''}`,
+            // innerHTML: `${oscType}/${note}/${octave}`,
+            innerHTML: `${note}`,
+          }),
+          oscType, 
+          note, 
+          octave
+        }
+      })
+    }).flat(1)
+  })
+
+  console.log(allBlocks)
+
+  allBlocks.forEach((type, i) => {
+    type.forEach(sound => {
+      elements.soundPalettes[i].append(sound.el)
+      sound.el.addEventListener('click', ()=> {
+        playBlock(sound)
+        ;['note', 'octave', 'oscType'].forEach(key => {
+          inputs[key].value = sound[key]
+          settings[key] = sound[key]
+        })
+      })
+    })
+  })
 
 }
 
