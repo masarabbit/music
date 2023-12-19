@@ -46,7 +46,7 @@ body {
 
 .singers-wrapper {
   display: flex;
-  width: 600px;
+  width: 500px;
   justify-content: space-evenly;
   z-index: 1;
 }
@@ -87,7 +87,7 @@ body {
   z-index: -1;
   position: relative;
   /* margin-top: 5px; */
-  width: 600px;
+  width: 500px;
 }
 
 .timeline {
@@ -157,6 +157,7 @@ button:not(.btn) {
 
 .sound-palette button {
   margin: 1px;
+  width: 32px;
   height: 80px;
   display: flex;
   justify-content: center;

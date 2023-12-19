@@ -2,7 +2,6 @@
 
 function init() {
 
-  //TODO update param to make oscType shorter
   //TODO add envelope?
   //TODO add pause / stop
   //TODO update how tunes are saved? save as json instead of param? Or maybe swap _ and .
@@ -42,6 +41,16 @@ function init() {
       triangle: 0.7,
       square: 0.2,
       sawtooth: 0.2,
+    },
+    oscKey: {
+      s: 'sine',
+      t: 'triangle',
+      q: 'square',
+      w: 'sawtooth',
+      sine: 's',
+      triangle: 't',
+      square: 'q',
+      sawtooth: 'w'
     },
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
     frames: {
@@ -138,7 +147,6 @@ function init() {
 
   keys.forEach(key => {
     key.el = key.note.childNodes[1].childNodes[1]
-    // key.btn = key.note.childNodes[3]
     elements.singersWrapper.appendChild(key.note)
     elements.timeline.el.appendChild(key.track)
 
@@ -180,7 +188,6 @@ function init() {
 
       block.el.addEventListener('click', ()=> removeBlock(block))
     })
-    // key.btn.addEventListener('click', ()=> playKey(key))
   })
 
   const snare = () => {
@@ -196,13 +203,13 @@ function init() {
   }
 
   const updateQueryParam = () => {
-    window.location = `#${elements.timeline.h}${settings.blocks.length ? '#' : ''}${settings.blocks.map(b => {
+    window.location = `#${elements.timeline.h}#${settings.speed}#${settings.loop ? 'loop' : 'no-loop'}${settings.blocks.length ? '#' : ''}${settings.blocks.map(b => {
       if (!b) return
       const sound = b.snare 
         ? 'sn'
-        : `${b.note.replace('#','$')}_${b.octave}_${b.oscType}`
-      return `${b.y / 10}_${sound}_${b.key.id}`
-    }).join('.')}`
+        : `${b.note.replace('#','$')}.${b.octave}.${settings.oscKey[b.oscType]}`
+      return `${b.y / 10}.${sound}.${b.key.id}`
+    }).join('-')}`
   }
 
 
@@ -240,7 +247,7 @@ function init() {
     oscillator.frequency.value = getFrequency(block.note, block.octave) - (offset || 0)
 
     gainNode.gain.setValueAtTime(settings.volumes[block.oscType], 0)
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5) // TODO this bit can be extended to make the notes hang longer
 
     oscillator.connect(gainNode)
     // filterNode.connect(gainNode)
@@ -324,21 +331,42 @@ function init() {
   Object.keys(inputs).forEach(input => {
     inputs[input].addEventListener('change', e => {
       settings[input] = ['snare', 'loop'].includes(input)
-        ? !settings[input]
+        ? e.target.checked
         : e.target.value
       updateIndicator()
     })
   })
 
+  const convertOldParam = param => {
+    return param.split('.').map(data =>{
+      const blockArr = data.split('_')
+      const snare = blockArr[1] === 'sn'
+      const y = blockArr[0]
+      if (snare) return `${y}.${snare}.${blockArr[2]}`
+      else {
+        const note = blockArr[1]
+        const octave = blockArr[2]
+        const oscType = settings.oscKey[blockArr[3]]
+        return `${y}.${note}.${octave}.${oscType}.${blockArr[4]}`
+      }
+    }).join('-')
+  }
+  console.log(convertOldParam('3_c_5_sine_3.6_f_5_sine_4.9_a_4_square_5.12_f_5_square_6.9_g_3_square_0.12_b_3_sawtooth_1.18_f_5_square_3.21_g_3_sawtooth_1.18_a_3_square_0.15_f_4_square_2.18_b_4_square_4.27_e_5_square_5.15_a_5_square_7.6_a_5_triangle_7.24_a_5_square_3.6_b_4_triangle_2.30_b_3_square_1.36_f_4_square_1.33_e_5_triangle_4.36_g_5_triangle_5.39_d_5_triangle_4.42_g_5_triangle_2.36_a_3_sawtooth_0.42_a_3_square_1.45_b_5_triangle_7.48_g_3_square_0.51_a_3_square_1.57_g_4_triangle_3.54_b_4_triangle_4.51_c_5_square_5'))
+
   const query = window.location.hash
   const queryArray = query.split('#')
   if (queryArray.length > 2) {
-    const blocks = queryArray[2].split('.')
     elements.timeline.h = +queryArray[1]
+    settings.speed = +queryArray[2]
+    inputs.speed.value = +queryArray[2]
+    settings.loop = queryArray[3] === 'loop'
+    inputs.loop.checked = queryArray[3] === 'loop'
+    const blocks = queryArray[4].split('-')
+
     setStyles(elements.timeline)
     if (blocks.length) {
       settings.blocks = blocks.map(block => {
-        const blockArr = block.split('_')
+        const blockArr = block.split('.')
         const snare = blockArr[1] === 'sn'
         const y = +blockArr[0] * 10
         
@@ -355,7 +383,7 @@ function init() {
         }
         const note = blockArr[1].replace('$','#')
         const octave = blockArr[2]
-        const oscType = blockArr[3]
+        const oscType = settings.oscKey[blockArr[3]]
         return {
           el: Object.assign(document.createElement('div'), { 
             className: 'block',
@@ -417,6 +445,7 @@ function init() {
       // })
     })
   })
+
 
 }
 
