@@ -1,7 +1,6 @@
 //@ts-checkOFF
 
 function init() {
-  // TODO adjust timelineWrapper height based on screenSize
 
   //TODO add envelope?
   //TODO add pause / stop
@@ -11,7 +10,7 @@ function init() {
     oscType: document.querySelector('#oscillator-type'),
     note: document.querySelector('#note'),
     octave: document.querySelector('#octave'),
-    // snare: document.querySelector('#snare'),
+    snare: document.querySelector('#snare'),
     speed: document.querySelector('#speed'),
     loop: document.querySelector('#loop'),
     blocks: document.querySelector('#blocks'),
@@ -27,7 +26,7 @@ function init() {
     oscillator: null,
     btns: document.querySelectorAll('.btn'),
     indicator: document.querySelector('.indicator'),
-    soundPalettes: document.querySelectorAll('.sound-palette'),
+    soundPalettes: document.querySelectorAll('.sound-palette')
   }
 
   const settings = {
@@ -82,6 +81,7 @@ function init() {
   }
   const nearestN = (n, denom) => n === 0 ? 0 : (n - 1) + Math.abs(((n - 1) % denom) - denom)
   const setPos = ({ el, x, y }) => Object.assign(el.style, { left: `${x}px`, top: `${y}px` })
+
   const getFrequency = (note, octave) => {
     const num = settings.notes.indexOf(note)
     const freq = 440 * Math.pow(2, (octave * 12 + num - 57) / 12)
@@ -93,6 +93,7 @@ function init() {
   const filterNode = new BiquadFilterNode(ctx, { //TODO can't work out how to apply this properly
     type: 'lowpass',
     frequency: 1000,
+    // Q: 100,
   })
   // console.log(filterNode)
   const gainNode = ctx.createGain()
@@ -103,7 +104,7 @@ function init() {
     channelData[i] = Math.random() * 2 - 1
   })
   
-  const keys = Array(4).fill('').map((_, i) => {
+  const keys = Array(8).fill('').map((_, i) => {
     return  {
       note: Object.assign(document.createElement('div'), 
         { 
@@ -115,9 +116,11 @@ function init() {
         }),
       x: 0,
       y: 0,
+      // frames: [0, 1, 2, 4, 4, 4, 5, 0],
       frameCount: 0,
       timer: null,
       id: i,
+      // key,
       track: Object.assign(document.createElement('div'), 
         { className: 'track' }),  
     }
@@ -183,6 +186,7 @@ function init() {
       key.track.appendChild(block.el)
       settings.blocks.push(block)
       updateQueryParam()
+
       block.el.addEventListener('click', ()=> removeBlock(block))
     })
   })
@@ -212,6 +216,26 @@ function init() {
   }
 
 
+
+  const playSound = () => {
+    elements.oscillator = ctx.createOscillator()
+    const { note, octave } = settings
+    elements.oscillator.type = settings.oscType
+    elements.oscillator.frequency.value = getFrequency(note, octave)
+
+    gainNode.gain.setValueAtTime(1, 0)
+    // gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1)
+
+    elements.oscillator.connect(filterNode)
+    filterNode.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    elements.oscillator.start(0)
+    elements.oscillator.stop(ctx.currentTime + 0.5)
+  }
+
+
+
+
   const playBlock = (block, offset) => {
     if (block.key) {
       animateSprite(block.key, block.frames)
@@ -220,49 +244,44 @@ function init() {
       control.snare()
       return
     }
-    const ctx = new AudioContext()
+    // const ctx = new AudioContext()
     const oscillator = ctx.createOscillator()
     const gainNode = ctx.createGain()
 
-    oscillator.type = block.oscType || settings.oscType
-    oscillator.frequency.value = getFrequency(block.note, block.octave || settings.octave) - (offset || 0)
+    oscillator.type = block.oscType
+    oscillator.frequency.value = getFrequency(block.note, block.octave) - (offset || 0)
 
-    gainNode.gain.setValueAtTime(settings.volumes[oscillator.type], 0)
+    gainNode.gain.setValueAtTime(settings.volumes[block.oscType], 0)
     gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5) // TODO this bit can be extended to make the notes hang longer
 
     oscillator.connect(gainNode)
+    // filterNode.connect(gainNode)
     gainNode.connect(ctx.destination)
+    // gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1)
     oscillator.start(0)
     oscillator.stop(ctx.currentTime + 0.5)
-  }
-
-  const scrollPos = ({ el, y }) => {
-    el.y > el.parentNode.offsetHeight
-      ? el.parentNode.scrollTop = y
-      : setPos({ el, y: y * -1 })
   }
 
 
   const playTracks = playOn => {
     if (!playOn) {
       elements.timeline.y = 0
-      elements.timeline.el.parentNode.scrollTop = 0
-      scrollPos(elements.timeline)
+      setPos(elements.timeline)
       clearTimeout(elements.timeline.timer)
       if (!settings.blocks.length) return
     }
     settings.blocks.forEach(block => {
-      if (block.y === (elements.timeline.y)) playBlock(block)
+      if (block.y === (elements.timeline.y * -1)) playBlock(block)
     })
-    elements.timeline.y += 10
-    scrollPos(elements.timeline)
-    if (elements.timeline.y <= (elements.timeline.h)) {
+    elements.timeline.y -= 10
+    setPos(elements.timeline)
+    if (elements.timeline.y >= (-1 * elements.timeline.h)) {
       elements.timeline.timer = setTimeout(()=> {
         control.playTracks(true)
       }, settings.speed)
     } else {
       elements.timeline.y = 0
-      scrollPos(elements.timeline)
+      setPos(elements.timeline)
       if (settings.loop) {
         control.playTracks()
       }
@@ -270,6 +289,7 @@ function init() {
   }
 
   const control = {
+    playSound,
     snare,
     playTracks,
     delete: () => {
@@ -321,6 +341,22 @@ function init() {
       updateIndicator()
     })
   })
+
+  const convertOldParam = param => {
+    return param.split('.').map(data =>{
+      const blockArr = data.split('_')
+      const snare = blockArr[1] === 'sn'
+      const y = blockArr[0]
+      if (snare) return `${y}.${snare}.${blockArr[2]}`
+      else {
+        const note = blockArr[1]
+        const octave = blockArr[2]
+        const oscType = settings.oscKey[blockArr[3]]
+        return `${y}.${note}.${octave}.${oscType}.${blockArr[4]}`
+      }
+    }).join('-')
+  }
+  console.log(convertOldParam('3_c_5_sine_3.6_f_5_sine_4.9_a_4_square_5.12_f_5_square_6.9_g_3_square_0.12_b_3_sawtooth_1.18_f_5_square_3.21_g_3_sawtooth_1.18_a_3_square_0.15_f_4_square_2.18_b_4_square_4.27_e_5_square_5.15_a_5_square_7.6_a_5_triangle_7.24_a_5_square_3.6_b_4_triangle_2.30_b_3_square_1.36_f_4_square_1.33_e_5_triangle_4.36_g_5_triangle_5.39_d_5_triangle_4.42_g_5_triangle_2.36_a_3_sawtooth_0.42_a_3_square_1.45_b_5_triangle_7.48_g_3_square_0.51_a_3_square_1.57_g_4_triangle_3.54_b_4_triangle_4.51_c_5_square_5'))
 
   const query = window.location.hash
   const queryArray = query.split('#')
@@ -380,24 +416,37 @@ function init() {
     } 
   }
 
-  const allBlocks = settings.notes.map(note => {
-    return {
-      el: Object.assign(document.createElement('button'), { 
-        className: `sound-button ${note.includes('#') ? 'sharp' : ''}`,
-        innerHTML: `${note}`,
-      }),
-      note, 
-    }
+  const allBlocks = settings.oscTypes.map(oscType => {
+    return [2, 3, 4, 5].map(octave => {
+      return settings.notes.map(note => {
+        return {
+          el: Object.assign(document.createElement('button'), { 
+            className: `sound-button ${note.includes('#') ? 'sharp' : ''}`,
+            innerHTML: `${note}`,
+          }),
+          oscType, 
+          note, 
+          octave
+        }
+      })
+    }).flat(1)
   })
 
 
-  allBlocks.forEach(sound => {
-    elements.soundPalettes[0].append(sound.el)
-    sound.el.addEventListener('click', ()=> {
-      playBlock(sound)
-      // ;['note', 'octave', 'oscType'].forEach(key => {
-      //   inputs[key].value = sound[key]
-      //   settings[key] = sound[key]
+  allBlocks.forEach((type, i) => {
+    type.forEach(sound => {
+      elements.soundPalettes[i].append(sound.el)
+      sound.el.addEventListener('click', ()=> {
+        playBlock(sound)
+        // playBlock(sound, -10)
+        // playBlock(sound, 1000)
+        ;['note', 'octave', 'oscType'].forEach(key => {
+          inputs[key].value = sound[key]
+          settings[key] = sound[key]
+        })
+      })
+      // sound.el.addEventListener('mouseup', ()=> {
+      //   playBlock(sound, 0, true, true)
       // })
     })
   })

@@ -10,6 +10,7 @@
 <body>
   <div class="wrapper">
     <div class="input-wrapper">
+      <!-- <input type="number" id="frequency"> -->
       <input type="number" id="octave" value="5">
       <input type="number" id="speed" value="50">
       <div>
@@ -28,8 +29,9 @@
     </div>
 
     <div class="btn-wrapper">
-      <!-- <button class="snare btn" data-control="snare">snare</button> -->
-      <button class="play btn" data-control="playTracks"></button>
+      <button class="play btn" data-control="playSound"></button>
+      <button class="snare btn" data-control="snare">snare</button>
+      <button class="play-tracks btn" data-control="playTracks">play tracks</button>
       <button class="delete btn" data-control="delete"></button>
       <button class="btn extend" data-control="extend"></button>
       <button class="btn shorten" data-control="shorten"></button>
@@ -41,7 +43,7 @@
     </div>
   </div>
 
-    <textarea id="blocks" class="d-none" spellcheck="false"></textarea>
+    <textarea id="blocks" spellcheck="false"></textarea>
 
     <div class="sound-palette-wrapper">
       <div class="sound-palette"></div>

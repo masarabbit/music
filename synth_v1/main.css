@@ -20,10 +20,6 @@ body {
   overscroll-behavior: contain;
 }
 
-.d-none {
-  display: none;
-}
-
 .wrapper {
   position: absolute;
   display: flex;
@@ -88,11 +84,10 @@ body {
 
 
 .timeline-wrapper {
+  z-index: -1;
   position: relative;
+  /* margin-top: 5px; */
   width: 500px;
-  height: 500px;
-  overflow-y: scroll;
-  /* border: 1px solid blue; */
 }
 
 .timeline {
