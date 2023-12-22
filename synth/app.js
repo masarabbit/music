@@ -3,18 +3,18 @@
 function init() {
   // TODO adjust timelineWrapper height based on screenSize
 
+  // TODO octave should be 2, 3, 4, 5 ?
+
   //TODO add envelope?
   //TODO add pause / stop
-  //TODO update how tunes are saved? save as json instead of param? Or maybe swap _ and .
+
 
   const inputs = {
-    oscType: document.querySelector('#oscillator-type'),
-    note: document.querySelector('#note'),
+    // note: document.querySelector('#note'),
     octave: document.querySelector('#octave'),
-    // snare: document.querySelector('#snare'),
     speed: document.querySelector('#speed'),
     loop: document.querySelector('#loop'),
-    blocks: document.querySelector('#blocks'),
+    // blocks: document.querySelector('#blocks'),
   }
   const elements = {
     singersWrapper: document.querySelector('.singers-wrapper'),
@@ -27,16 +27,18 @@ function init() {
     oscillator: null,
     btns: document.querySelectorAll('.btn'),
     indicator: document.querySelector('.indicator'),
-    soundPalettes: document.querySelectorAll('.sound-palette'),
+    soundPalette: document.querySelector('.sound-palette'),
+    oscTypeBtnWrapper: document.querySelector('.osc-type-btn-wrapper'),
+    oscTypeBtns: []
   }
 
   const settings = {
     blocks: [],
     oscTypes: [
-      'sine',
+      'sawtooth',
       'triangle',
       'square',
-      'sawtooth',
+      'sine',
     ],
     volumes: {
       sine: 0.7,
@@ -45,14 +47,14 @@ function init() {
       sawtooth: 0.2,
     },
     oscKey: {
-      s: 'sine',
+      w: 'sawtooth',
       t: 'triangle',
       q: 'square',
-      w: 'sawtooth',
-      sine: 's',
+      s: 'sine',
+      sawtooth: 'w',
       triangle: 't',
       square: 'q',
-      sawtooth: 'w'
+      sine: 's',
     },
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
     frames: {
@@ -64,7 +66,7 @@ function init() {
       a: [0, 1, 2, 3, 3, 3, 1, 0],
       b: [0, 1, 6, 6, 6, 6, 0],
     },
-    oscType: 'sine',
+    oscType: 'triangle',
     note: 'c',
     octave: 5,
     snare: false,
@@ -103,21 +105,21 @@ function init() {
     channelData[i] = Math.random() * 2 - 1
   })
   
-  const keys = Array(4).fill('').map((_, i) => {
+  const keys = settings.oscTypes.map(type => {
     return  {
-      note: Object.assign(document.createElement('div'), 
+      singer: Object.assign(document.createElement('div'), 
         { 
-          className: 'note',
+          className: `singer ${type}`,
           innerHTML: `
           <div class="sprite-container">
-            <div class="sprite singer"></div>
+            <div class="sprite"></div>
           </div>`
         }),
       x: 0,
       y: 0,
       frameCount: 0,
       timer: null,
-      id: i,
+      id: type,
       track: Object.assign(document.createElement('div'), 
         { className: 'track' }),  
     }
@@ -143,11 +145,15 @@ function init() {
     updateQueryParam()
   }
 
-  keys.forEach(key => {
-    key.el = key.note.childNodes[1].childNodes[1]
-    elements.singersWrapper.appendChild(key.note)
-    elements.timeline.el.appendChild(key.track)
+  const activateOscType = key => {
+    ;[key.track, key.singer].forEach(el => el.classList[key.id === settings.oscType ? 'add' : 'remove']('active'))
+  }
 
+  keys.forEach(key => {
+    key.el = key.singer.childNodes[1].childNodes[1]
+    elements.singersWrapper.appendChild(key.singer)
+    elements.timeline.el.appendChild(key.track)
+    activateOscType(key)
     key.track.addEventListener('click', e => {
       if (e.target.classList[0] === 'block') return
       const { note, octave, oscType, snare } = settings
@@ -185,6 +191,7 @@ function init() {
       updateQueryParam()
       block.el.addEventListener('click', ()=> removeBlock(block))
     })
+
   })
 
   const snare = () => {
@@ -205,10 +212,8 @@ function init() {
       const sound = b.snare 
         ? 'sn'
         : `${b.note.replace('#','$')}.${b.octave}.${settings.oscKey[b.oscType]}`
-      return `${b.y / 10}.${sound}.${b.key.id}`
+      return `${b.y / 10}.${sound}`
     }).join('-')}`
-
-    inputs.blocks.value = JSON.stringify(settings.blocks, undefined, 1)
   }
 
 
@@ -252,11 +257,11 @@ function init() {
       if (!settings.blocks.length) return
     }
     settings.blocks.forEach(block => {
-      if (block.y === (elements.timeline.y)) playBlock(block)
+      if (block.y === elements.timeline.y) playBlock(block)
     })
     elements.timeline.y += 10
     scrollPos(elements.timeline)
-    if (elements.timeline.y <= (elements.timeline.h)) {
+    if (elements.timeline.y <= elements.timeline.h) {
       elements.timeline.timer = setTimeout(()=> {
         control.playTracks(true)
       }, settings.speed)
@@ -278,12 +283,12 @@ function init() {
       updateQueryParam()
     },
     extend: () => {
-      elements.timeline.h += 90
+      elements.timeline.h += 30
       setStyles(elements.timeline)
       updateQueryParam()
     },
     shorten: () => {
-      elements.timeline.h -= 90
+      elements.timeline.h -= 30
       setStyles(elements.timeline)
       updateQueryParam()
     }
@@ -294,6 +299,24 @@ function init() {
       control[e.target.dataset.control]()
     })
   })
+  
+  settings.oscTypes.forEach(type => {
+    const btn = Object.assign(document.createElement('div'), { 
+      className: `osc-btn ${type === settings.oscType ? 'active' : ''}`,
+      innerHTML: `${type}`,
+    })
+    btn.addEventListener('click', ()=> {
+      settings.oscType = type
+      keys.forEach(key => {
+      activateOscType(key)
+      })
+      elements.oscTypeBtns.forEach(btn => {
+        btn.classList[btn.innerHTML === type ? 'add' : 'remove']('active')
+      })
+    })
+    elements.oscTypeBtns.push(btn)
+    elements.oscTypeBtnWrapper.append(btn)
+  })
 
 
 
@@ -301,17 +324,6 @@ function init() {
     elements.indicator.innerHTML = Object.keys(inputs).map(input => input !== 'blocks' && settings[input]).join(' | ')
   }
 
-  inputs.oscType.innerHTML = settings.oscTypes.map(type => {
-    return `<option value="${type}">${type}</option>`
-  })
-  inputs.note.innerHTML = settings.notes.map(note => {
-    return `<option value="${note}">${note}</option>`
-  })
-
-  inputs.oscType.addEventListener('change', e => {
-    settings.oscType = +e.target.value
-    updateIndicator()
-  })
 
   Object.keys(inputs).forEach(input => {
     inputs[input].addEventListener('change', e => {
@@ -324,7 +336,7 @@ function init() {
 
   const query = window.location.hash
   const queryArray = query.split('#')
-  if (queryArray.length > 2) {
+  if (queryArray.length > 4) {
     elements.timeline.h = +queryArray[1]
     settings.speed = +queryArray[2]
     inputs.speed.value = +queryArray[2]
@@ -346,7 +358,7 @@ function init() {
               innerHTML: 'snare',
             }),
             snare,
-            key: keys[+blockArr[2]],
+            key: keys.find(key => key.id === oscType),
             y
           }
         }
@@ -364,7 +376,7 @@ function init() {
           note,
           octave,
           oscType,
-          key: keys[+blockArr[4]],
+          key: keys.find(key => key.id === oscType),
           snare,
           y,
         }
@@ -392,14 +404,21 @@ function init() {
 
 
   allBlocks.forEach(sound => {
-    elements.soundPalettes[0].append(sound.el)
+    elements.soundPalette.append(sound.el)
     sound.el.addEventListener('click', ()=> {
       playBlock(sound)
-      // ;['note', 'octave', 'oscType'].forEach(key => {
-      //   inputs[key].value = sound[key]
-      //   settings[key] = sound[key]
-      // })
+      settings.note = sound.note
+      animateSprite(
+        keys.find(key => key.id === settings.oscType), 
+        settings.frames[sound.note.replace('#','')]
+      )
     })
+  })
+  
+  // Adjust width to consider scrollbar width
+  setStyles({
+    el: elements.singersWrapper,
+    w: elements.timeline.el.offsetWidth
   })
 
 

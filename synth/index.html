@@ -9,53 +9,38 @@
 </head>
 <body>
   <div class="wrapper">
-    <div class="input-wrapper">
-      <input type="number" id="octave" value="5">
-      <input type="number" id="speed" value="50">
-      <div>
-        <input type="checkbox" id="snare" name="snare">
-        <label for="snare">snare</label>
-      </div>
-      <div>
-        <input type="checkbox" id="loop" name="loop">
-        <label for="loop">loop</label>
-      </div>
-
-      <select name="type" id="oscillator-type">
-      </select>
-      <select name="note" id="note">
-      </select>
-    </div>
-
-    <div class="btn-wrapper">
-      <!-- <button class="snare btn" data-control="snare">snare</button> -->
-      <button class="play btn" data-control="playTracks"></button>
-      <button class="delete btn" data-control="delete"></button>
-      <button class="btn extend" data-control="extend"></button>
-      <button class="btn shorten" data-control="shorten"></button>
-    </div>
-
+  
     <div class="singers-wrapper"></div>
     <div class="timeline-wrapper">
       <div class="timeline"></div>
     </div>
-  </div>
-
-    <textarea id="blocks" class="d-none" spellcheck="false"></textarea>
-
+    
     <div class="sound-palette-wrapper">
       <div class="sound-palette"></div>
-      <div class="sound-palette"></div>
-      <div class="sound-palette"></div>
-      <div class="sound-palette"></div>
+      <div class="osc-type-btn-wrapper"></div>
     </div>
 
 
-  </div>
+    <div class="btn-wrapper">
+      <button class="play btn" data-control="playTracks"></button>
+      <button class="delete btn" data-control="delete"></button>
+      <button class="extend btn" data-control="extend"></button>
+      <button class="shorten btn" data-control="shorten"></button>
 
-  <div class="indicator"></div>
-  <div class="sign">
-    by masahito / <a href="http://www.ma5a.com/" >ma5a.com</a>
+      <div class="input-wrapper">
+        <input type="number" id="octave" value="5">
+        <input type="number" id="speed" value="50">
+        <div>
+          <input type="checkbox" id="loop" name="loop">
+          <label for="loop">loop</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="indicator"></div>
+    <div class="sign">
+      by masahito / <a href="http://www.ma5a.com/" >ma5a.com</a>
+    </div>
   </div>
 </body>
 </html>
