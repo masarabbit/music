@@ -15,9 +15,24 @@
       <div class="timeline"></div>
     </div>
     
+    <div class="osc-type-btn-wrapper"></div>
     <div class="sound-palette-wrapper">
       <div class="sound-palette"></div>
-      <div class="osc-type-btn-wrapper"></div>
+      <div class="inner-wrapper">
+        <p>octave</p>
+        <div>
+          <button class="minus btn" data-control="decrease" data-setting="octave" data-no="1"></button>
+          <input type="number" id="octave" value="5">
+          <button class="plus btn" data-control="increase" data-setting="octave" data-no="1"></button>
+        </div>
+        <p>speed</p>
+        <div>
+          <button class="minus btn" data-control="decrease" data-setting="speed" data-no="10"></button>
+          <input type="number" id="speed" value="80">
+          <button class="plus btn" data-control="increase" data-setting="speed" data-no="10"></button>
+        </div>
+      </div>
+      
     </div>
 
 
@@ -26,15 +41,7 @@
       <button class="delete btn" data-control="delete"></button>
       <button class="extend btn" data-control="extend"></button>
       <button class="shorten btn" data-control="shorten"></button>
-
-      <div class="input-wrapper">
-        <input type="number" id="octave" value="5">
-        <input type="number" id="speed" value="50">
-        <div>
-          <input type="checkbox" id="loop" name="loop">
-          <label for="loop">loop</label>
-        </div>
-      </div>
+      <button class="loop text-btn btn" data-control="loop"></button>
     </div>
     
     <div class="indicator"></div>

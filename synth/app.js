@@ -1,22 +1,20 @@
 //@ts-checkOFF
 
 function init() {
-  // TODO adjust timelineWrapper height based on screenSize
-
-  // TODO octave should be 2, 3, 4, 5 ?
-
   //TODO add envelope?
   //TODO add pause / stop
 
+  //TODO make green darker
+  // TODO add rainbow colours for cde
+  // TODO add active state
+
 
   const inputs = {
-    // note: document.querySelector('#note'),
     octave: document.querySelector('#octave'),
     speed: document.querySelector('#speed'),
-    loop: document.querySelector('#loop'),
-    // blocks: document.querySelector('#blocks'),
   }
   const elements = {
+    wrapper: document.querySelector('.wrapper'),
     singersWrapper: document.querySelector('.singers-wrapper'),
     timeline: {
       el: document.querySelector('.timeline'),
@@ -29,7 +27,8 @@ function init() {
     indicator: document.querySelector('.indicator'),
     soundPalette: document.querySelector('.sound-palette'),
     oscTypeBtnWrapper: document.querySelector('.osc-type-btn-wrapper'),
-    oscTypeBtns: []
+    oscTypeBtns: [],
+    loopBtn: document.querySelector('.loop'),
   }
 
   const settings = {
@@ -39,6 +38,7 @@ function init() {
       'triangle',
       'square',
       'sine',
+      // 'snare'
     ],
     volumes: {
       sine: 0.7,
@@ -51,10 +51,12 @@ function init() {
       t: 'triangle',
       q: 'square',
       s: 'sine',
+      n: 'snare',
       sawtooth: 'w',
       triangle: 't',
       square: 'q',
       sine: 's',
+      snare: 'n'
     },
     notes: ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'],
     frames: {
@@ -69,9 +71,8 @@ function init() {
     oscType: 'triangle',
     note: 'c',
     octave: 5,
-    snare: false,
     loop: false,
-    speed: 50
+    speed: 80
   }
 
   const isNo = x => typeof x === 'number'
@@ -156,8 +157,9 @@ function init() {
     activateOscType(key)
     key.track.addEventListener('click', e => {
       if (e.target.classList[0] === 'block') return
-      const { note, octave, oscType, snare } = settings
+      const { note, octave, oscType } = settings
       const { top } = key.track.getBoundingClientRect()
+      const snare = key.id === 'snare'
       const block = snare 
         ? {
           el: Object.assign(document.createElement('div'), { 
@@ -172,7 +174,6 @@ function init() {
             className: 'block',
             innerHTML: `
             <p>${note} ${octave}</p>
-            <p>${oscType}</p>
             `,
           }),
           note,
@@ -191,7 +192,6 @@ function init() {
       updateQueryParam()
       block.el.addEventListener('click', ()=> removeBlock(block))
     })
-
   })
 
   const snare = () => {
@@ -203,7 +203,7 @@ function init() {
     gainNode.gain.setValueAtTime(0.1, 0)
     gainNode.connect(ctx.destination)
     whiteNoiseSrc.start()
-    whiteNoiseSrc.stop(ctx.currentTime + 0.3)
+    whiteNoiseSrc.stop(ctx.currentTime + 0.2)
   }
 
   const updateQueryParam = () => {
@@ -215,7 +215,7 @@ function init() {
       return `${b.y / 10}.${sound}`
     }).join('-')}`
   }
-
+  
 
   const playBlock = (block, offset) => {
     if (block.key) {
@@ -225,7 +225,6 @@ function init() {
       control.snare()
       return
     }
-    const ctx = new AudioContext()
     const oscillator = ctx.createOscillator()
     const gainNode = ctx.createGain()
 
@@ -262,10 +261,12 @@ function init() {
     elements.timeline.y += 10
     scrollPos(elements.timeline)
     if (elements.timeline.y <= elements.timeline.h) {
+      elements.wrapper.classList.add('active')
       elements.timeline.timer = setTimeout(()=> {
         control.playTracks(true)
       }, settings.speed)
     } else {
+      elements.wrapper.classList.remove('active')
       elements.timeline.y = 0
       scrollPos(elements.timeline)
       if (settings.loop) {
@@ -291,18 +292,34 @@ function init() {
       elements.timeline.h -= 30
       setStyles(elements.timeline)
       updateQueryParam()
+    },
+    increase: e => {
+      const key = e.target.dataset.setting
+      const no = +e.target.dataset.no
+      settings[key] += no
+      inputs[key].value = settings[key]
+    },
+    decrease: e => {
+      const key = e.target.dataset.setting
+      const no = +e.target.dataset.no
+      settings[key] -= no
+      inputs[key].value = settings[key]
+    },
+    loop: () => {
+      settings.loop = !settings.loop
+      elements.loopBtn.classList[settings.loop ? 'add' : 'remove']('active')
     }
   }
   
   elements.btns.forEach(btn => {
     btn.addEventListener('click', e => {
-      control[e.target.dataset.control]()
+      control[e.target.dataset.control](e)
     })
   })
   
   settings.oscTypes.forEach(type => {
-    const btn = Object.assign(document.createElement('div'), { 
-      className: `osc-btn ${type === settings.oscType ? 'active' : ''}`,
+    const btn = Object.assign(document.createElement('button'), { 
+      className: `text-btn border-right ${type === settings.oscType ? 'active' : ''}`,
       innerHTML: `${type}`,
     })
     btn.addEventListener('click', ()=> {
@@ -319,11 +336,9 @@ function init() {
   })
 
 
-
   const updateIndicator = () => {
     elements.indicator.innerHTML = Object.keys(inputs).map(input => input !== 'blocks' && settings[input]).join(' | ')
   }
-
 
   Object.keys(inputs).forEach(input => {
     inputs[input].addEventListener('change', e => {
@@ -341,8 +356,9 @@ function init() {
     settings.speed = +queryArray[2]
     inputs.speed.value = +queryArray[2]
     settings.loop = queryArray[3] === 'loop'
-    inputs.loop.checked = queryArray[3] === 'loop'
     const blocks = queryArray[4].split('-')
+
+    if (settings.loop) elements.loopBtn.classList.add('active')
 
     setStyles(elements.timeline)
     if (blocks.length) {
@@ -358,7 +374,7 @@ function init() {
               innerHTML: 'snare',
             }),
             snare,
-            key: keys.find(key => key.id === oscType),
+            key: keys.find(key => key.id === 'snare'),
             y
           }
         }
@@ -370,7 +386,6 @@ function init() {
             className: 'block',
             innerHTML: `
           <p>${note} ${octave}</p>
-          <p>${oscType}</p>
           `,
           }),
           note,
@@ -395,7 +410,7 @@ function init() {
   const allBlocks = settings.notes.map(note => {
     return {
       el: Object.assign(document.createElement('button'), { 
-        className: `sound-button ${note.includes('#') ? 'sharp' : ''}`,
+        className: `sound-button border-right ${note.includes('#') ? 'sharp' : ''}`,
         innerHTML: `${note}`,
       }),
       note, 
