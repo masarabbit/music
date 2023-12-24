@@ -33,11 +33,12 @@ body {
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 20px 0 0;
+  padding: 20px 0;
 }
 
 .wrapper {
   background-color: rgb(12, 171, 182);
+  height: calc(100% - 20px);
 }
 
 .btn-wrapper {
@@ -102,7 +103,7 @@ body {
 .timeline-wrapper {
   position: relative;
   width: var(--w);
-  height: 500px;
+  height: calc(100% - 220px);
   overflow-y: scroll;
   /* border: 1px solid blue; */
 }
