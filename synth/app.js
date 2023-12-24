@@ -2,11 +2,8 @@
 
 function init() {
   //TODO add envelope?
-  //TODO add pause / stop
 
-  //TODO make green darker
   // TODO add rainbow colours for cde
-  // TODO add active state
 
 
   const inputs = {
@@ -28,7 +25,10 @@ function init() {
     soundPalette: document.querySelector('.sound-palette'),
     oscTypeBtnWrapper: document.querySelector('.osc-type-btn-wrapper'),
     oscTypeBtns: [],
+    playBtn: document.querySelector('.play'),
+    stopBtn: document.querySelector('.stop'),
     loopBtn: document.querySelector('.loop'),
+    dialogue: document.querySelector('.dialogue'),
   }
 
   const settings = {
@@ -110,10 +110,10 @@ function init() {
     return  {
       singer: Object.assign(document.createElement('div'), 
         { 
-          className: `singer ${type}`,
+          className: 'singer',
           innerHTML: `
           <div class="sprite-container">
-            <div class="sprite"></div>
+            <div class="sprite ${type}"></div>
           </div>`
         }),
       x: 0,
@@ -246,15 +246,21 @@ function init() {
       : setPos({ el, y: y * -1 })
   }
 
+  const stop = () => {
+    elements.timeline.y = 0
+    elements.timeline.el.parentNode.scrollTop = 0
+    scrollPos(elements.timeline)
+    clearTimeout(elements.timeline.timer)
+    ;[elements.wrapper, elements.playBtn].forEach(el => el.classList.remove('active'))
+  }
+
 
   const playTracks = playOn => {
     if (!playOn) {
-      elements.timeline.y = 0
-      elements.timeline.el.parentNode.scrollTop = 0
-      scrollPos(elements.timeline)
-      clearTimeout(elements.timeline.timer)
+      stop()
       if (!settings.blocks.length) return
     }
+    elements.playBtn.classList.add('active')
     settings.blocks.forEach(block => {
       if (block.y === elements.timeline.y) playBlock(block)
     })
@@ -263,14 +269,12 @@ function init() {
     if (elements.timeline.y <= elements.timeline.h) {
       elements.wrapper.classList.add('active')
       elements.timeline.timer = setTimeout(()=> {
-        control.playTracks(true)
+        playTracks(true)
       }, settings.speed)
     } else {
-      elements.wrapper.classList.remove('active')
-      elements.timeline.y = 0
-      scrollPos(elements.timeline)
+      stop()
       if (settings.loop) {
-        control.playTracks()
+        playTracks()
       }
     }
   }
@@ -278,10 +282,18 @@ function init() {
   const control = {
     snare,
     playTracks,
+    stop,
+    deleteCheck: () => {
+      elements.wrapper.classList.add('pause')
+    },
     delete: () => {
+      elements.wrapper.classList.remove('pause')
       keys.forEach(key => key.track.innerHTML = '')
       settings.blocks = []
       updateQueryParam()
+    },
+    resume: () => {
+      elements.wrapper.classList.remove('pause')
     },
     extend: () => {
       elements.timeline.h += 30
@@ -431,11 +443,11 @@ function init() {
   })
   
   // Adjust width to consider scrollbar width
-  setStyles({
-    el: elements.singersWrapper,
-    w: elements.timeline.el.offsetWidth
+  ;[elements.singersWrapper, elements.oscTypeBtnWrapper].forEach(el => {
+    setStyles({ el, w: elements.timeline.el.offsetWidth })
   })
 
+  elements.dialogue.addEventListener('click', control.resume)
 
 }
 
