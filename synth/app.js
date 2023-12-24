@@ -163,7 +163,7 @@ function init() {
       const block = snare 
         ? {
           el: Object.assign(document.createElement('div'), { 
-            className: 'block',
+            className: 'block snare',
             innerHTML: 'snare',
           }),
           key,
@@ -171,7 +171,7 @@ function init() {
         }
         : {
           el: Object.assign(document.createElement('div'), { 
-            className: 'block',
+            className: `block ${note.replace('#', '')}`,
             innerHTML: `
             <p>${note} ${octave}</p>
             `,
@@ -251,6 +251,7 @@ function init() {
     elements.timeline.el.parentNode.scrollTop = 0
     scrollPos(elements.timeline)
     clearTimeout(elements.timeline.timer)
+    elements.timeline.timer = null
     ;[elements.wrapper, elements.playBtn].forEach(el => el.classList.remove('active'))
   }
 
@@ -281,7 +282,10 @@ function init() {
 
   const control = {
     snare,
-    playTracks,
+    playTracks: () => {
+      if (elements.timeline.timer) return
+      playTracks()
+    },
     stop,
     deleteCheck: () => {
       elements.wrapper.classList.add('pause')
@@ -382,7 +386,7 @@ function init() {
         if (snare) {
           return {
             el: Object.assign(document.createElement('div'), { 
-              className: 'block',
+              className: 'block snare',
               innerHTML: 'snare',
             }),
             snare,
@@ -395,7 +399,7 @@ function init() {
         const oscType = settings.oscKey[blockArr[3]]
         return {
           el: Object.assign(document.createElement('div'), { 
-            className: 'block',
+            className: `block ${note.replace('#','')}`,
             innerHTML: `
           <p>${note} ${octave}</p>
           `,
@@ -422,7 +426,7 @@ function init() {
   const allBlocks = settings.notes.map(note => {
     return {
       el: Object.assign(document.createElement('button'), { 
-        className: `sound-button border-right ${note.includes('#') ? 'sharp' : ''}`,
+        className: `sound-button border-right ${note.replace('#','')} ${note.includes('#') ? 'sharp' : ''}`,
         innerHTML: `${note}`,
       }),
       note, 
