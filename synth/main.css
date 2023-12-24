@@ -251,12 +251,12 @@ button:hover {
 .sound-palette button.sharp {
   /* background-color: var(--blue); */
   color: white;
-  height: 36px;
+  height: 46px;
   margin-left: -16px;
   margin-right: -16px;
   z-index: 1;
-  background-size: 32px 36px;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAASCAYAAABSO15qAAAAAXNSR0IArs4c6QAAADdJREFUOE9jZGBgYAjT4/kPokkFqy59YWQcNWA0DEbTAcNwygvkZGmQ/0H6wAQMEFuwwDSD9AEAfyNIE//zwhcAAAAASUVORK5CYII=);
+  background-size: 32px 46px;
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAAD1JREFUOE9jZGBgYAjT4/kPokkFqy59YWQcNWA0DEbTAcNoXmAYDQMGpDAgp1wEJSKQPjABA8SWzjDNIH0AF5FcGC80pxkAAAAASUVORK5CYII=);
 }
 
 
