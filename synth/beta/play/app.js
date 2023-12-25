@@ -85,7 +85,7 @@ function init() {
     const freq = 440 * Math.pow(2, (octave * 12 + num - 57) / 12)
     return +freq.toFixed(4)
   }
-  const getSpeed = bpm => (1 / bpm) * 10000
+  const getSpeed = bpm => ((60 / bpm) * 1000) / 6
 
   const ctx = new AudioContext()
   const filterNode = new BiquadFilterNode(ctx, { //TODO can't work out how to apply this properly

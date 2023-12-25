@@ -1,0 +1,102 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  user-select: none;
+}
+
+p, h1, h2, h3, h4 {
+  display: inline-block;
+  margin-block-start: 0em;
+  margin-block-end: 0em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 0px;
+}
+
+body {
+  background-color: #fed550;
+  font-family: Arial, Helvetica, sans-serif;
+  overscroll-behavior: contain;
+  --w: 340px;
+  --brown: rgb(86, 46, 12);
+}
+
+.wrapper {
+  padding: 10px;
+}
+
+button {
+  padding: 0 8px;
+}
+
+.sound-palette {
+  position: absolute;
+  bottom: 50px;
+  display: flex;
+}
+
+.sound-palette button {
+  width: 32px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  padding: 0 0 10px;
+  --line-color: black;
+  border: 0 solid var(--line-color);
+}
+
+.sound-palette button:not(:last-child) {
+  border-right-width: 1px;
+}
+
+
+.sound-palette button.sharp {
+  background-color: black;
+  color: white;
+  height: 35px;
+  margin-left: -16px;
+  margin-right: -16px;
+  z-index: 1;
+  --line-color: white;
+}
+
+input[type=number] {
+  width: 40px;
+  text-align: center;
+  /* border: 0;
+  background-color: transparent;
+  color: white; */
+}
+
+/* other */
+
+.sign {
+  position: fixed;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--brown);
+  bottom: 10px;
+  right: 10px;
+  font-size: 10px;
+  text-transform: none;
+}
+
+.indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: var(--brown);
+  font-size: 15px;
+  opacity: 0.8;
+  z-index: 999;
+  pointer-events: none;
+}
+a {
+  color: var(--brown);
+  text-decoration: none;
+  text-transform: none;
+}
+
+a:hover { text-decoration: underline; }
+
