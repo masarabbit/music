@@ -24,7 +24,6 @@ function init() {
     playBtn: document.querySelector('.play'),
     stopBtn: document.querySelector('.stop'),
     loopBtn: document.querySelector('.loop'),
-    dialogue: document.querySelector('.dialogue'),
   }
 
   const settings = {
@@ -375,7 +374,6 @@ function init() {
   // Adjust width to consider scrollbar width
   setStyles({ el: elements.singersWrapper, w: elements.timeline.el.offsetWidth })
 
-  elements.dialogue.addEventListener('click', control.resume)
 
 }
 
