@@ -4,6 +4,7 @@ function init() {
   //TODO add envelope?
 
   // TODO bpm is probably correct but needs checking
+  // TODO need to add warning for sound
 
 
   const inputs = {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" type="text/css" href="../main.css" />
+
+  <script type="module"  src ="app.js" charset="utf-8"></script>
+  <title>synth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div class="outer-wrapper">
+    <div class="wrapper active blocked">
+      <div class="dialogue">
+        <div>
+          Are you sure you want to delete the tracks?
+          <div>
+            <button class="text-btn btn" data-control="delete">yes</button>
+            <button class="text-btn btn" data-control="resume">cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="singers-wrapper"></div>
+      <div class="timeline-wrapper">
+        <div class="timeline"></div>
+      </div>
+      
+      <div class="simple-playback-wrapper">
+        <div class="inner-wrapper">
+          <p>bpm</p>
+          <div>
+            <button class="minus btn" data-control="decrease" data-setting="bpm" data-no="10"></button>
+            <input type="number" id="bpm" value="80">
+            <button class="plus btn" data-control="increase" data-setting="bpm" data-no="10"></button>
+          </div>
+        </div>
+        <div class="btn-wrapper">
+          <button class="play sq-btn btn" data-control="playTracks"></button>
+          <button class="stop sq-btn btn" data-control="stop"></button>
+          <button class="loop sq-btn btn" data-control="loop"></button>
+        </div>
+
+      </div>  
+  
+      <div class="indicator"></div>
+      <div class="sign">
+        by masahito / <a href="http://www.ma5a.com/" >ma5a.com</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

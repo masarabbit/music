@@ -145,6 +145,10 @@ body {
   pointer-events: none;
 }
 
+.wrapper.active .track {
+  pointer-events: none;
+}
+
 .block {
   position: absolute;
   --w: 50px;
@@ -477,3 +481,16 @@ a {
 
 a:hover { text-decoration: underline; }
 
+.simple-playback-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wrapper:has(.simple-playback-wrapper) {
+  max-height: 500px;
+}
+
+.wrapper:has(.simple-playback-wrapper) .timeline-wrapper {
+  height: calc(100% - 120px);
+}
