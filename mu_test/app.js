@@ -4,7 +4,6 @@ function init() {
 
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   let oscillator = null;
-  // const playButton = document.querySelector(".play-button");
 
   const gainNode = audioCtx.createGain()
 
@@ -30,14 +29,6 @@ function init() {
       gainNode.connect(audioCtx.destination)
       oscillator.connect(gainNode)
 
-      // oscillator.connect(audioCtx.destination);
-
-      // oscillator.onended = ()=> {
-      //   oscillator.disconnect(audioCtx.destination);
-      //   oscillator = null
-      // }
-
-
       oscillator.start();
   } else {
       button.innerHTML = `▶️ ${note}`;
@@ -58,5 +49,6 @@ function init() {
 
 
   }
+  // check here: https://github.com/taniarascia/accordion/blob/master/src/routes/diatonic.svelte
 
 window.addEventListener('DOMContentLoaded', init)
