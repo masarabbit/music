@@ -190,71 +190,46 @@ function init() {
     })
   })
 
+  // const sawtooths = [
+  //   { note: 'c', octave: 2, length: 8, time: 2, },
+  //   { note: 'd', octave: 2, length: 8, time: 4, },
+  //   { note: 'e', octave: 2, length: 8, time: 6, },  
+  //   { note: 'f', octave: 2, length: 8, time: 8, },
+  // ]
+
+  // const triangles = [
+  //   { note: 'e', octave: 5, length: 50, time: 1 },
+  //   { note: 'f', octave: 5, length: 10, time: 2 },
+  //   { note: 'd', octave: 5, length: 10, time: 3 },
+  //   { note: 'g', octave: 5, length: 700, time: 4 },
+  //   { note: 'a', octave: 5, length: 1300, time: 6 },
+  // ]
+
   const sawtooths = [
-    {
-      note: 'c',
-      octave: 3,
-      length: 8,
-      time: 2,
-    },
-    {
-      note: 'd',
-      octave: 3,
-      length: 8,
-      time: 4,
-    },
-    {
-      note: 'e',
-      octave: 3,
-      length: 8,
-      time: 6,
-    },  
-    {
-      note: 'f',
-      octave: 3,
-      length: 8,
-      time: 8,
-    },
+    { note: 'c', octave: 4, length: 20, time: 1, },
+    { note: 'b', octave: 4, length: 20, time: 2, },
+    { note: 'g', octave: 4, length: 20, time: 3, },  
+    { note: 'c', octave: 4, length: 10, time: 4, },
+    { note: 'b', octave: 4, length: 10, time: 5, },
+    { note: 'a', octave: 4, length: 10, time: 6, },  
+    { note: 'c', octave: 4, length: 20, time: 9, },
+    { note: 'b', octave: 4, length: 20, time: 10, },
+    { note: 'g', octave: 4, length: 20, time: 11, }, 
+    { note: 'b', octave: 4, length: 10, time: 12, },  
+    { note: 'g', octave: 5, length: 10, time: 13, },
+    { note: 'f', octave: 5, length: 10, time: 14, }, 
+    { note: 'e', octave: 5, length: 10, time: 15, },  
+    // { note: 'f', octave: 2, length: 8, time: 8, },
   ]
 
   const triangles = [
-    {
-      note: 'e',
-      octave: 4,
-      length: 50,
-      time: 1,
-    },
-    {
-      note: 'f',
-      octave: 4,
-      length: 10,
-      time: 2,
-    },
-    {
-      note: 'd',
-      octave: 4,
-      length: 10,
-      time: 3,
-    },
-    {
-      note: 'g',
-      octave: 4,
-      length: 700,
-      time: 4,
-    },
-    {
-      note: 'a',
-      octave: 4,
-      length: 1300,
-      time: 6,
-    },
-    // {
-    //   note: 'a',
-    //   octave: 5,
-    //   length: 100,
-    //   time: 6,
-    //   offset: 1
-    // },
+    { note: 'e', octave: 5, length: 3, time: 1 },
+    { note: 'f', octave: 5, length: 3, time: 3 },
+    { note: 'a', octave: 5, length: 3, time: 6 },
+    { note: 'c', octave: 5, length: 10, time: 10 },
+  //   { note: 'd', octave: 5, length: 10, time: 3 },
+  //   { note: 'g', octave: 5, length: 700, time: 4 },
+  //   { note: 'a', octave: 5, length: 1300, time: 6 },
   ]
 
   
@@ -263,16 +238,16 @@ function init() {
       note.oscType = 'triangle'
       return note
     }),
-    ...sawtooths.map(note => {
+    ...[...sawtooths].map(note => {
       note.oscType = 'square'
-      note.octave += 2
+      note.octave -= 1
       note.length = 3
       return note
     }),
-    ...sawtooths.map(note => {
-      note.oscType = 'sawtooth'
-      return note
-    })
+    // ...sawtooths.map(note => {
+    //   note.oscType = 'sawtooth'
+    //   return note
+    // })
   ]
 
   settings.endTime = [...settings.blocks.sort((a, b) => b.time - a.time)][0].time
@@ -308,3 +283,77 @@ function init() {
 }
 
 window.addEventListener('DOMContentLoaded', init)
+
+
+
+// const sawtooths = [
+//   {
+//     note: 'c',
+//     octave: 3,
+//     length: 8,
+//     time: 4,
+//   },
+//   {
+//     note: 'd',
+//     octave: 3,
+//     length: 8,
+//     time: 8,
+//   },
+//   {
+//     note: 'e',
+//     octave: 3,
+//     length: 8,
+//     time: 10,
+//   },  
+//   {
+//     note: 'f',
+//     octave: 3,
+//     length: 8,
+//     time: 12,
+//   },
+// ]
+
+// const triangles = [
+//   {
+//     note: 'e',
+//     octave: 4,
+//     length: 25,
+//     time: 1,
+//   },
+//   {
+//     note: 'f',
+//     octave: 4,
+//     length: 5,
+//     time: 2,
+//   },
+//   {
+//     note: 'd',
+//     octave: 4,
+//     length: 5,
+//     time: 3,
+//   },
+//   {
+//     note: 'f',
+//     octave: 4,
+//     length: 5,
+//     time: 4,
+//   },
+//   {
+//     note: 'e',
+//     octave: 4,
+//     length: 5,
+//     time: 5,
+//   },
+//   {
+//     note: 'g',
+//     octave: 4,
+//     length: 350,
+//     time: 8,
+//   },
+//   {
+//     note: 'a',
+//     octave: 4,
+//     length: 700,
+//     time: 10,
+//   },
+// ]

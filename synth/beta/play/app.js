@@ -3,8 +3,6 @@
 function init() {
   //TODO add envelope?
 
-  // TODO bpm is probably correct but needs checking
-
 
   const inputs = {
     bpm: document.querySelector('#bpm'),
@@ -215,12 +213,14 @@ function init() {
     oscillator.frequency.value = getFrequency(block.note, block.octave || settings.octave) - (offset || 0)
 
     gainNode.gain.setValueAtTime(settings.volumes[oscillator.type], 0)
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5) 
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5)
+    // gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1) 
 
     oscillator.connect(gainNode)
     gainNode.connect(ctx.destination)
     oscillator.start(0)
     oscillator.stop(ctx.currentTime + 0.5)
+    // oscillator.stop(ctx.currentTime + 1.5)
   }
 
   const scrollPos = ({ el, y }) => {

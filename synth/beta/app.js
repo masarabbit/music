@@ -217,6 +217,7 @@ function init() {
     }).join('-')}`
   }
   
+  // const mainGainNode = ctx.createGain()
 
   const playBlock = (block, offset) => {
     if (block.key) {

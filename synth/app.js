@@ -233,12 +233,12 @@ function init() {
     oscillator.frequency.value = getFrequency(block.note, block.octave || settings.octave) - (offset || 0)
 
     gainNode.gain.setValueAtTime(settings.volumes[oscillator.type], 0)
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5) // TODO this bit can be extended to make the notes hang longer
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 2.5) // TODO this bit can be extended to make the notes hang longer
 
     oscillator.connect(gainNode)
     gainNode.connect(ctx.destination)
     oscillator.start(0)
-    oscillator.stop(ctx.currentTime + 0.5)
+    oscillator.stop(ctx.currentTime + 1.5)
   }
 
   const scrollPos = ({ el, y }) => {
