@@ -12,5 +12,6 @@
     "githubPullRequests.pullBranch": "never",
     "git.mergeEditor": false,
     "editor.fontLigatures": true,
-    "workbench.editor.enablePreview": false
+    "workbench.editor.enablePreview": false,
+    "liveServer.settings.port": 5501
 }
