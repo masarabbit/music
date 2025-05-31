@@ -3,7 +3,7 @@
     "editor.tabSize": 2,
     "editor.detectIndentation": false,
     "workbench.iconTheme": "material-icon-theme",
-    "workbench.colorTheme": "Tokyo Night",
+    "workbench.colorTheme": "Catppuccin Mocha",
     "githubPullRequests.fileListLayout": "flat",
     "editor.wordWrap": "on",
     "liveServer.settings.donotShowInfoMsg": true,
