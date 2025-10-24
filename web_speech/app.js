@@ -22,12 +22,6 @@ function init() {
     utterThis.pitch = 300
     // utterThis.rate = rate.value
     synth.speak(utterThis)
-    // utterThis.onpause = (event) => {
-    //   const char = event.utterance.text.charAt(event.charIndex);
-    //   console.log(
-    //     `Speech paused at character ${event.charIndex} of "${event.utterance.text}", which is "${char}".`,
-    //   )
-    // }
   })
 
   function populateVoiceList() {

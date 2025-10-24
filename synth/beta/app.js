@@ -41,10 +41,10 @@ function init() {
       // 'snare'
     ],
     volumes: {
-      sine: 0.7,
-      triangle: 0.7,
-      square: 0.2,
-      sawtooth: 0.2,
+      sine: 0.3,
+      triangle: 0.3,
+      square: 0.15,
+      sawtooth: 0.15,
     },
     oscKey: {
       w: 'sawtooth',
@@ -94,6 +94,21 @@ function init() {
   const getSpeed = bpm => ((60 / bpm) * 1000) / 6
 
   const ctx = new AudioContext()
+  
+  // Master dynamics chain to prevent clipping
+  const masterGain = ctx.createGain()
+  masterGain.gain.value = 0.8 // Headroom for multiple sounds
+  
+  const masterCompressor = ctx.createDynamicsCompressor()
+  masterCompressor.threshold.value = -10
+  masterCompressor.knee.value = 10
+  masterCompressor.ratio.value = 4
+  masterCompressor.attack.value = 0.003
+  masterCompressor.release.value = 0.25
+  
+  masterGain.connect(masterCompressor)
+  masterCompressor.connect(ctx.destination)
+  
   const filterNode = new BiquadFilterNode(ctx, { //TODO can't work out how to apply this properly
     type: 'lowpass',
     frequency: 1000,
@@ -197,14 +212,22 @@ function init() {
 
   const snare = () => {
     const whiteNoiseSrc = ctx.createBufferSource()
+    const snareGain = ctx.createGain()
+    
     whiteNoiseSrc.buffer = buffer
     whiteNoiseSrc.connect(filterNode)
-    filterNode.connect(gainNode)
-    whiteNoiseSrc.connect(gainNode)
-    gainNode.gain.setValueAtTime(0.1, 0)
-    gainNode.connect(ctx.destination)
-    whiteNoiseSrc.start()
-    whiteNoiseSrc.stop(ctx.currentTime + 0.2)
+    filterNode.connect(snareGain)
+    whiteNoiseSrc.connect(snareGain)
+    
+    // Attack envelope for snare
+    const now = ctx.currentTime
+    snareGain.gain.setValueAtTime(0, now)
+    snareGain.gain.linearRampToValueAtTime(0.1, now + 0.005) // 5ms attack
+    snareGain.gain.exponentialRampToValueAtTime(0.00001, now + 0.2)
+    
+    snareGain.connect(masterGain) // Route through master gain
+    whiteNoiseSrc.start(now)
+    whiteNoiseSrc.stop(now + 0.2)
   }
 
   const updateQueryParam = () => {
@@ -233,13 +256,17 @@ function init() {
     oscillator.type = block.oscType || settings.oscType
     oscillator.frequency.value = getFrequency(block.note, block.octave || settings.octave) - (offset || 0)
 
-    gainNode.gain.setValueAtTime(settings.volumes[oscillator.type], 0)
-    gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5) // TODO this bit can be extended to make the notes hang longer
+    // Attack envelope to prevent clicks/pops
+    const now = ctx.currentTime
+    const targetVolume = settings.volumes[oscillator.type]
+    gainNode.gain.setValueAtTime(0, now)
+    gainNode.gain.linearRampToValueAtTime(targetVolume, now + 0.01) // 10ms attack
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1.5) // TODO this bit can be extended to make the notes hang longer
 
     oscillator.connect(gainNode)
-    gainNode.connect(ctx.destination)
-    oscillator.start(0)
-    oscillator.stop(ctx.currentTime + 0.5)
+    gainNode.connect(masterGain) // Route through master gain instead of directly to destination
+    oscillator.start(now)
+    oscillator.stop(now + 0.5)
   }
 
   const scrollPos = ({ el, y }) => {

@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  user-select: none;
+}
+
+body {
+  background-color: #111;
+}
+
+
+.slider {
+  display: flex;
+}
+
+.slider label {
+  width: 100px;
+  color: #fff;
+  text-align: right;
+}

@@ -1,0 +1,48 @@
+AUDIO POPPING FIXES - synth/beta/app.js
+===========================================
+
+PROBLEM:
+Audio popping/clicking occurred when multiple sounds played together.
+
+ROOT CAUSES:
+1. No attack envelope - sounds started at full volume instantly
+2. Volume levels too high - multiple sounds exceeded 1.0 causing clipping
+3. No master limiter - no protection against audio clipping
+
+SOLUTIONS IMPLEMENTED:
+
+1. Master Dynamics Chain (lines 98-110)
+   - Added masterGain node set to 0.8 for headroom
+   - Added dynamics compressor with:
+     * Threshold: -10dB
+     * Knee: 10dB
+     * Ratio: 4:1
+     * Attack: 3ms
+     * Release: 250ms
+   - All audio now routes through masterGain → compressor → destination
+
+2. Reduced Volume Levels (lines 43-48)
+   - Sine: 0.7 → 0.3
+   - Triangle: 0.7 → 0.3
+   - Square: 0.2 → 0.15
+   - Sawtooth: 0.2 → 0.15
+   - Prevents clipping when multiple notes play simultaneously
+
+3. Attack Envelopes Added
+   a) Oscillators (lines 251-256):
+      - 10ms linear ramp from 0 to target volume
+      - Prevents sudden discontinuities at note start
+   
+   b) Snare (lines 223-226):
+      - 5ms linear ramp from 0 to 0.1
+      - Smoother percussion attack
+
+TECHNICAL DETAILS:
+- Used ctx.currentTime for precise timing
+- linearRampToValueAtTime for attack (smoother than instant setValueAtTime)
+- exponentialRampToValueAtTime for decay (natural sound)
+- All sounds now connect to masterGain instead of ctx.destination
+
+RESULT:
+Audio popping eliminated. Clean sound even with multiple simultaneous notes.
+
