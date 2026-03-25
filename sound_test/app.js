@@ -130,39 +130,80 @@ window.addEventListener('DOMContentLoaded', () => {
         sawtooth: 0.15,
       }[this.type]
     }
+    // play() {
+    //   const oscillator = ctx.createOscillator()
+    //   const gainNode = ctx.createGain()
+
+    //   oscillator.type = this.type
+    //   oscillator.frequency.value = this.frequency
+
+    //   // Attack envelope to prevent clicks/pops
+    //   const now = ctx.currentTime
+    //   gainNode.gain.setValueAtTime(0, now)
+    //   gainNode.gain.linearRampToValueAtTime(this.targetVolume, now + 0.01) // 10ms attack
+    //   gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1.5) // TODO this bit can be extended to make the notes hang longer
+
+    //   oscillator.connect(gainNode)
+    //   gainNode.connect(masterGain) // Route through master gain instead of directly to destination
+    //   oscillator.start(now)
+    //   oscillator.stop(now + 0.5)
+    // }
+    // play2() {
+    //     const oscillator = ctx.createOscillator()
+    //     const gainNode = ctx.createGain()
+
+    //     oscillator.type = this.type
+    //     oscillator.frequency.value = this.frequency
+
+    //     // Attack envelope to prevent clicks/pops
+    //     const now = ctx.currentTime
+
+    //     const { attack, decay, sustain, release, delay } = settings
+    //     const length = Math.floor(attack + decay + sustain + release + delay)
+    //     const buffer = ctx.createBuffer(1, length, sampleRate)
+    //     const source = ctx.createBufferSource()
+    //     buffer.getChannelData(0).set(channel)
+    // }
     play() {
-      const oscillator = ctx.createOscillator()
-      const gainNode = ctx.createGain()
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-      oscillator.type = this.type
-      oscillator.frequency.value = this.frequency
+      oscillator.type = this.type;
+      oscillator.frequency.value = this.frequency;
 
-      // Attack envelope to prevent clicks/pops
-      const now = ctx.currentTime
-      gainNode.gain.setValueAtTime(0, now)
-      gainNode.gain.linearRampToValueAtTime(this.targetVolume, now + 0.01) // 10ms attack
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, now + 1.5) // TODO this bit can be extended to make the notes hang longer
+      const now = ctx.currentTime;
+      
+      // Destructure settings for easier access
+      // Note: Ensure your Sliders provide values in seconds for time params
+      const { attack, decay, sustainVolume, release } = settings;
+      const peakVolume = this.targetVolume;
 
-      oscillator.connect(gainNode)
-      gainNode.connect(masterGain) // Route through master gain instead of directly to destination
-      oscillator.start(now)
-      oscillator.stop(now + 0.5)
-    }
-    play2() {
-        const oscillator = ctx.createOscillator()
-        const gainNode = ctx.createGain()
+      // 1. Start at 0
+      gainNode.gain.setValueAtTime(0, now);
 
-        oscillator.type = this.type
-        oscillator.frequency.value = this.frequency
+      // 2. Attack: Ramp up to peak volume
+      gainNode.gain.linearRampToValueAtTime(peakVolume, now + parseFloat(attack));
 
-        // Attack envelope to prevent clicks/pops
-        const now = ctx.currentTime
+      // 3. Decay: Ramp down to the sustain level
+      // Use exponentialRamp for a more natural sound, but value cannot be 0
+      const sustainLevel = peakVolume * parseFloat(sustainVolume);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(sustainLevel, 0.0001), now + parseFloat(attack) + parseFloat(decay));
 
-        const { attack, decay, sustain, release, delay } = settings
-        const length = Math.floor(attack + decay + sustain + release + delay)
-        const buffer = ctx.createBuffer(1, length, sampleRate)
-        const source = ctx.createBufferSource()
-        buffer.getChannelData(0).set(channel)
+      // 4. Release: Trigger the end of the sound
+      // For a simple 'click' trigger, we schedule the release relative to a fixed duration
+      const holdTime = 0.5; // How long the note stays held before releasing
+      const releaseStart = now + parseFloat(attack) + parseFloat(decay) + holdTime;
+      
+      gainNode.gain.setValueAtTime(sustainLevel, releaseStart);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, releaseStart + parseFloat(release));
+
+      // Connections
+      oscillator.connect(gainNode);
+      gainNode.connect(masterGain);
+      
+      oscillator.start(now);
+      // Stop the oscillator after the entire envelope has finished
+      oscillator.stop(releaseStart + parseFloat(release) + 0.1);
     }
   }
 
