@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Electric Guitar Audio Lab</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter and Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              100: '#cffaff',
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+              900: '#164e63',
+            },
+            amberAccent: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar for code blocks and UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Range Input Custom Styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #334155;
+      border-radius: 3px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -5px;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #67e8f9;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- Top Header Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400">
+        <i data-lucide="guitar" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          Web Audio Guitar Lab
+          <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/30">ZzFX Demystified</span>
+        </h1>
+        <p class="text-xs text-slate-400">Deconstructing physical electric guitar sound synthesis with the Web Audio API</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="btn-trigger" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg shadow-lg shadow-cyan-500/20 active:scale-95 transition-all text-sm">
+        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+        <span>Strum Guitar (Space)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] w-full mx-auto">
+    
+    <!-- LEFT PANEL: Controls & Physics Parameters (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- Preset & Chord Bar -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-3">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="sliders" class="w-3.5 h-3.5 text-cyan-400"></i> Sound Presets
+          </label>
+          <span class="text-[11px] text-slate-500 font-mono">Hotkeys [1-4]</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          <button data-preset="heavy" class="preset-btn text-xs py-2 px-2.5 rounded-lg border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-medium hover:bg-cyan-500/20 transition text-center truncate">
+            1. Heavy A5
+          </button>
+          <button data-preset="crunch" class="preset-btn text-xs py-2 px-2.5 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 font-medium hover:bg-slate-800 transition text-center truncate">
+            2. Crunch
+          </button>
+          <button data-preset="clean" class="preset-btn text-xs py-2 px-2.5 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 font-medium hover:bg-slate-800 transition text-center truncate">
+            3. Clean Pluck
+          </button>
+          <button data-preset="muted" class="preset-btn text-xs py-2 px-2.5 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 font-medium hover:bg-slate-800 transition text-center truncate">
+            4. Palm Mute
+          </button>
+        </div>
+
+        <div class="border-t border-slate-800/80 pt-3">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-2">
+            <i data-lucide="music" class="w-3.5 h-3.5 text-amber-400"></i> Chord Selection
+          </label>
+          <select id="select-chord" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:border-cyan-500 focus:outline-none">
+            <option value="A5">A5 Power Chord (A2, E3, A3, E4)</option>
+            <option value="E5">E5 Heavy Power Chord (E2, B2, E3, G#3)</option>
+            <option value="D5">D5 Power Chord (D3, A3, D4, F#4)</option>
+            <option value="G5">G5 Power Chord (G2, D3, G3, B3)</option>
+            <option value="C_MAJ">C Major Clean Strum (C3, E3, G3, C4, E4)</option>
+            <option value="SINGLE_E">Single Low E String Pluck (E2 - 82.4Hz)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Parameter Accordion / Sliders Control Panels -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex-1 space-y-5 overflow-y-auto max-h-[calc(100vh-280px)]">
+        
+        <!-- Section 1: Strum Physical Sweep -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+              <i data-lucide="hand" class="w-4 h-4"></i> 1. Pick Strum Sweep
+            </h3>
+            <span class="text-[11px] text-slate-500">Pick Drag Speed</span>
+          </div>
+          
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <label for="p-strumDelay" class="text-slate-300 font-medium">Strum Delay (ms / string)</label>
+              <span id="val-strumDelay" class="font-mono text-cyan-400">18 ms</span>
+            </div>
+            <input type="range" id="p-strumDelay" min="0" max="80" value="18" step="1" class="w-full">
+            <p class="text-[11px] text-slate-500">Staggering start times simulates a physical plectrum passing across strings.</p>
+          </div>
+        </div>
+
+        <!-- Section 2: String Tension Transient (Pitch Snap) -->
+        <div class="space-y-3 pt-2">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4"></i> 2. String Pitch "Chirp" (Tension Snap)
+            </h3>
+            <span class="text-[11px] text-slate-500">Non-linear Stretch</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-pitchChirp" class="text-slate-300 font-medium">Snap Pitch Pitch Semitones</label>
+                <span id="val-pitchChirp" class="font-mono text-amber-400">+0.8 st</span>
+              </div>
+              <input type="range" id="p-pitchChirp" min="0" max="3" value="0.8" step="0.05" class="w-full">
+              <p class="text-[11px] text-slate-500">String stretches sharp on initial impact.</p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-chirpTime" class="text-slate-300 font-medium">Snap Duration</label>
+                <span id="val-chirpTime" class="font-mono text-amber-400">45 ms</span>
+              </div>
+              <input type="range" id="p-chirpTime" min="5" max="150" value="45" step="1" class="w-full">
+              <p class="text-[11px] text-slate-500">How fast pitch settles to true fundamental note.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Pick Harmonic Decay (Biquad Filter) -->
+        <div class="space-y-3 pt-2">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4"></i> 3. Pick Transient & Harmonic Decay
+            </h3>
+            <span class="text-[11px] text-slate-500">Dynamic Low-Pass Filter</span>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <label for="p-filterStart" class="text-slate-300 font-medium">Pick Scratch Cutoff (Hz)</label>
+              <span id="val-filterStart" class="font-mono text-emerald-400">6500 Hz</span>
+            </div>
+            <input type="range" id="p-filterStart" min="1000" max="12000" value="6500" step="100" class="w-full">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-filterBody" class="text-slate-300 font-medium">Sustain Cutoff (Hz)</label>
+                <span id="val-filterBody" class="font-mono text-emerald-400">1200 Hz</span>
+              </div>
+              <input type="range" id="p-filterBody" min="300" max="4000" value="1200" step="50" class="w-full">
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-filterDecay" class="text-slate-300 font-medium">Harmonic Decay Time</label>
+                <span id="val-filterDecay" class="font-mono text-emerald-400">220 ms</span>
+              </div>
+              <input type="range" id="p-filterDecay" min="20" max="800" value="220" step="10" class="w-full">
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500">Pick scratches generate high frequencies that bleed off quickly compared to the string's low tone.</p>
+        </div>
+
+        <!-- Section 4: Overdrive & Cabinet Impulse -->
+        <div class="space-y-3 pt-2">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+              <i data-lucide="disc" class="w-4 h-4"></i> 4. Amp Distortion & Speaker Cabinet
+            </h3>
+            <span class="text-[11px] text-slate-500">WaveShaper + Cab Filter</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-distortion" class="text-slate-300 font-medium">Overdrive Gain</label>
+                <span id="val-distortion" class="font-mono text-rose-400">45</span>
+              </div>
+              <input type="range" id="p-distortion" min="0" max="100" value="45" step="1" class="w-full">
+              <p class="text-[11px] text-slate-500">Clips wave peaks for tube warm distortion.</p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-cabCutoff" class="text-slate-300 font-medium">Cab Resonance Cutoff</label>
+                <span id="val-cabCutoff" class="font-mono text-rose-400">3200 Hz</span>
+              </div>
+              <input type="range" id="p-cabCutoff" min="1000" max="8000" value="3200" step="100" class="w-full">
+              <p class="text-[11px] text-slate-500">12" speaker cones absorb high fizzy grit.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Amplitude Envelope ADSR -->
+        <div class="space-y-3 pt-2">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
+              <i data-lucide="waves" class="w-4 h-4"></i> 5. String Amplitude Decay (Envelope)
+            </h3>
+            <span class="text-[11px] text-slate-500">Gain Ramp</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-attack" class="text-slate-300 font-medium">Pick Attack (ms)</label>
+                <span id="val-attack" class="font-mono text-purple-400">8 ms</span>
+              </div>
+              <input type="range" id="p-attack" min="1" max="50" value="8" step="1" class="w-full">
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <label for="p-sustainDecay" class="text-slate-300 font-medium">Sustain Ring-out (s)</label>
+                <span id="val-sustainDecay" class="font-mono text-purple-400">1.4 s</span>
+              </div>
+              <input type="range" id="p-sustainDecay" min="0.1" max="4.0" value="1.4" step="0.1" class="w-full">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Visualizations & Code Explanation (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-5">
+      
+      <!-- Top Row: Real-time Oscilloscope + Spectrum -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i data-lucide="monitor" class="w-4 h-4 text-cyan-400"></i> Real-time Signal Oscilloscope & Spectrum
+          </h2>
+          <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 font-mono">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Audio Engine Ready
+          </span>
+        </div>
+        
+        <div class="relative w-full h-44 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
+          <canvas id="canvas-oscilloscope" class="w-full h-full block"></canvas>
+          <div class="absolute top-2 left-2 pointer-events-none flex gap-2">
+            <span class="text-[10px] font-mono text-cyan-400/70 bg-slate-900/80 px-2 py-0.5 rounded border border-cyan-500/20">Waveform (Cyan)</span>
+            <span class="text-[10px] font-mono text-amber-400/70 bg-slate-900/80 px-2 py-0.5 rounded border border-amber-500/20">Spectrum (Amber)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Row: Physics Parameter Envelopes (Graphs) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Graph 1: Pitch Snap & Filter Decay -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="trending-down" class="w-3.5 h-3.5 text-amber-400"></i> Pitch Chirp & Harmonic Envelope
+            </h3>
+          </div>
+          <div class="relative w-full h-36 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
+            <canvas id="canvas-pitch-filter" class="w-full h-full block"></canvas>
+            <div class="absolute bottom-2 left-2 text-[10px] font-mono text-amber-400/80">Pitch Snap (Amber)</div>
+            <div class="absolute bottom-2 right-2 text-[10px] font-mono text-emerald-400/80">Filter Decay (Green)</div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Shows how pitch snaps down to normal pitch while high-frequency pick scratch rolls off.
+          </p>
+        </div>
+
+        <!-- Graph 2: Amplitude ADSR Envelope -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-purple-400"></i> Volume Envelope (Gain)
+            </h3>
+          </div>
+          <div class="relative w-full h-36 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
+            <canvas id="canvas-gain" class="w-full h-full block"></canvas>
+            <div class="absolute bottom-2 left-2 text-[10px] font-mono text-purple-400/80">Gain Contour (Purple)</div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Initial pick snap attack followed by exponential string sustain decay.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Bottom Panel: Dynamic Web Audio Code Generator & Breakdown -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl flex-1 flex flex-col">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i data-lucide="code" class="w-4 h-4 text-cyan-400"></i> Generated Web Audio Implementation Code
+          </h2>
+          <button id="btn-copy-code" class="flex items-center gap-1 text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition">
+            <i data-lucide="copy" class="w-3 h-3"></i> Copy JS
+          </button>
+        </div>
+        
+        <div class="relative flex-1 bg-slate-950 rounded-lg border border-slate-800 p-3 overflow-x-auto">
+          <pre><code id="code-output" class="text-xs font-mono text-slate-300 leading-relaxed"></code></pre>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-cyan-500 text-slate-950 px-4 py-2.5 rounded-lg shadow-xl font-medium text-sm flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+    <i data-lucide="check-circle" class="w-4 h-4"></i>
+    <span id="toast-msg">Code copied to clipboard!</span>
+  </div>
+
+  <!-- Main JavaScript Audio Engine & UI Logic -->
+  <script>
+    // --- Initialize Lucide Icons ---
+    lucide.createIcons();
+
+    // --- Audio Context & Engine Setup ---
+    let audioCtx = null;
+    let analyserNode = null;
+    let isContextRunning = false;
+
+    // --- Chord Frequency Maps (in Hz) ---
+    const CHORDS = {
+      'A5': [110.00, 164.81, 220.00, 329.63],               // A2, E3, A3, E4
+      'E5': [82.41, 123.47, 164.81, 246.94],                // E2, B2, E3, B3
+      'D5': [146.83, 220.00, 293.66, 440.00],               // D3, A3, D4, A4
+      'G5': [98.00, 146.83, 196.00, 293.66],                // G2, D3, G3, D4
+      'C_MAJ': [130.81, 164.81, 196.00, 261.63, 329.63],   // C3, E3, G3, C4, E4
+      'SINGLE_E': [82.41]                                   // E2 Low String
+    };
+
+    // --- Presets Data ---
+    const PRESETS = {
+      heavy: { strumDelay: 18, pitchChirp: 0.8, chirpTime: 45, filterStart: 6500, filterBody: 1200, filterDecay: 220, distortion: 45, cabCutoff: 3200, attack: 8, sustainDecay: 1.4 },
+      crunch: { strumDelay: 25, pitchChirp: 0.5, chirpTime: 30, filterStart: 5000, filterBody: 1600, filterDecay: 180, distortion: 20, cabCutoff: 4200, attack: 6, sustainDecay: 1.2 },
+      clean: { strumDelay: 35, pitchChirp: 0.2, chirpTime: 20, filterStart: 7500, filterBody: 2500, filterDecay: 350, distortion: 2, cabCutoff: 6500, attack: 5, sustainDecay: 2.0 },
+      muted: { strumDelay: 12, pitchChirp: 1.2, chirpTime: 25, filterStart: 3500, filterBody: 600, filterDecay: 80, distortion: 35, cabCutoff: 2200, attack: 3, sustainDecay: 0.3 }
+    };
+
+    // --- Current Active State Parameters ---
+    let params = { ...PRESETS.heavy };
+
+    // --- UI Control Elements Map ---
+    const paramInputs = {
+      strumDelay: document.getElementById('p-strumDelay'),
+      pitchChirp: document.getElementById('p-pitchChirp'),
+      chirpTime: document.getElementById('p-chirpTime'),
+      filterStart: document.getElementById('p-filterStart'),
+      filterBody: document.getElementById('p-filterBody'),
+      filterDecay: document.getElementById('p-filterDecay'),
+      distortion: document.getElementById('p-distortion'),
+      cabCutoff: document.getElementById('p-cabCutoff'),
+      attack: document.getElementById('p-attack'),
+      sustainDecay: document.getElementById('p-sustainDecay')
+    };
+
+    const paramLabels = {
+      strumDelay: document.getElementById('val-strumDelay'),
+      pitchChirp: document.getElementById('val-pitchChirp'),
+      chirpTime: document.getElementById('val-chirpTime'),
+      filterStart: document.getElementById('val-filterStart'),
+      filterBody: document.getElementById('val-filterBody'),
+      filterDecay: document.getElementById('val-filterDecay'),
+      distortion: document.getElementById('val-distortion'),
+      cabCutoff: document.getElementById('val-cabCutoff'),
+      attack: document.getElementById('val-attack'),
+      sustainDecay: document.getElementById('val-sustainDecay')
+    };
+
+    // --- Distortion Curve Math Generator ---
+    function makeDistortionCurve(amount) {
+      const k = typeof amount === 'number' ? amount : 50;
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      const deg = Math.PI / 180;
+      if (k === 0) {
+        for (let i = 0; i < n_samples; ++i) curve[i] = (i * 2) / n_samples - 1;
+        return curve;
+      }
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+      }
+      return curve;
+    }
+
+    // --- Initialize Web Audio System ---
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 1024;
+        analyserNode.smoothingTimeConstant = 0.8;
+        analyserNode.connect(audioCtx.destination);
+      }
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      isContextRunning = true;
+    }
+
+    // --- Play Guitar Sound Core Engine ---
+    function playGuitarStroke() {
+      initAudio();
+
+      const chordKey = document.getElementById('select-chord').value;
+      const freqs = CHORDS[chordKey] || CHORDS['A5'];
+
+      // Shared Effects Chain: Distortion -> Speaker Cab Filter -> Master Gain -> Analyser
+      const distortionNode = audioCtx.createWaveShaper();
+      distortionNode.curve = makeDistortionCurve(params.distortion);
+      distortionNode.oversample = '4x';
+
+      const cabFilterNode = audioCtx.createBiquadFilter();
+      cabFilterNode.type = 'lowpass';
+      cabFilterNode.frequency.setValueAtTime(params.cabCutoff, audioCtx.currentTime);
+      cabFilterNode.Q.setValueAtTime(1.2, audioCtx.currentTime);
+
+      const masterGain = audioCtx.createGain();
+      // Normalize volume slightly depending on number of strings
+      const masterVol = 0.4 / Math.sqrt(freqs.length);
+      masterGain.gain.setValueAtTime(masterVol, audioCtx.currentTime);
+
+      // Connect Chain
+      distortionNode.connect(cabFilterNode);
+      cabFilterNode.connect(masterGain);
+      masterGain.connect(analyserNode);
+
+      const now = audioCtx.currentTime;
+
+      // Strum each string with a slight time delay
+      freqs.forEach((freq, index) => {
+        const delaySec = (index * params.strumDelay) / 1000;
+        const startTime = now + delaySec;
+        const attackSec = params.attack / 1000;
+        const totalDuration = attackSec + params.sustainDecay;
+
+        // 1. Raw String Oscillator (Sawtooth waveform contains rich harmonics)
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sawtooth';
+
+        // --- PHYSICAL MECHANIC 1: Pitch Chirp (String Stretch) ---
+        // Converts semitone offset to frequency multiplier
+        const sharpMult = Math.pow(2, params.pitchChirp / 12);
+        const chirpSec = params.chirpTime / 1000;
+        
+        osc.frequency.setValueAtTime(freq * sharpMult, startTime);
+        osc.frequency.exponentialRampToValueAtTime(freq, startTime + chirpSec);
+
+        // --- PHYSICAL MECHANIC 2: Dynamic Pick Cutoff Filter ---
+        // Pick strike produces bright high frequencies that decay fast
+        const stringFilter = audioCtx.createBiquadFilter();
+        stringFilter.type = 'lowpass';
+        const filterDecaySec = params.filterDecay / 1000;
+
+        stringFilter.frequency.setValueAtTime(params.filterStart, startTime);
+        stringFilter.frequency.exponentialRampToValueAtTime(
+          Math.max(200, params.filterBody), 
+          startTime + filterDecaySec
+        );
+
+        // --- PHYSICAL MECHANIC 3: Pick Gain Envelope ---
+        const stringGain = audioCtx.createGain();
+        stringGain.gain.setValueAtTime(0, startTime);
+        // Instant pick strike attack
+        stringGain.gain.linearRampToValueAtTime(1.0, startTime + attackSec);
+        // String vibration decay
+        stringGain.gain.exponentialRampToValueAtTime(0.001, startTime + totalDuration);
+
+        // Connect Nodes for this string
+        osc.connect(stringFilter);
+        stringFilter.connect(stringGain);
+        stringGain.connect(distortionNode);
+
+        // Start & Stop
+        osc.start(startTime);
+        osc.stop(startTime + totalDuration + 0.1);
+      });
+    }
+
+    // --- UI State Sync & Value Formatter ---
+    function updateUIValues() {
+      // Read values from sliders into params
+      for (let key in paramInputs) {
+        params[key] = parseFloat(paramInputs[key].value);
+      }
+
+      // Format Labels
+      paramLabels.strumDelay.textContent = `${params.strumDelay} ms`;
+      paramLabels.pitchChirp.textContent = `+${params.pitchChirp.toFixed(2)} st`;
+      paramLabels.chirpTime.textContent = `${params.chirpTime} ms`;
+      paramLabels.filterStart.textContent = `${params.filterStart} Hz`;
+      paramLabels.filterBody.textContent = `${params.filterBody} Hz`;
+      paramLabels.filterDecay.textContent = `${params.filterDecay} ms`;
+      paramLabels.distortion.textContent = `${params.distortion}`;
+      paramLabels.cabCutoff.textContent = `${params.cabCutoff} Hz`;
+      paramLabels.attack.textContent = `${params.attack} ms`;
+      paramLabels.sustainDecay.textContent = `${params.sustainDecay.toFixed(1)} s`;
+
+      // Update Code Generator Display
+      updateCodeSnippet();
+
+      // Redraw Dynamic Parameter Graphs
+      drawStaticEnvelopes();
+    }
+
+    function setPreset(presetKey) {
+      if (!PRESETS[presetKey]) return;
+      const p = PRESETS[presetKey];
+
+      for (let key in p) {
+        if (paramInputs[key]) {
+          paramInputs[key].value = p[key];
+        }
+      }
+
+      // Update preset buttons visual active state
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        if (btn.dataset.preset === presetKey) {
+          btn.className = "preset-btn text-xs py-2 px-2.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 text-cyan-300 font-medium transition text-center truncate shadow-sm";
+        } else {
+          btn.className = "preset-btn text-xs py-2 px-2.5 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 font-medium hover:bg-slate-800 transition text-center truncate";
+        }
+      });
+
+      updateUIValues();
+    }
+
+    // --- Dynamic Code Generator Output ---
+    function updateCodeSnippet() {
+      const code = `// Web Audio Guitar Synthesis Function (Generated Parameters)
+function playCustomGuitarStroke(audioCtx) {
+  const now = audioCtx.currentTime;
+  
+  // 1. AMP DISTORTION & SPEAKER CABINET SIMULATION
+  const distortion = audioCtx.createWaveShaper();
+  distortion.curve = makeDistortionCurve(${params.distortion}); // ${params.distortion > 30 ? 'Heavy drive clipping' : 'Clean / Soft overdrive'}
+  
+  const cabFilter = audioCtx.createBiquadFilter();
+  cabFilter.type = 'lowpass';
+  cabFilter.frequency.value = ${params.cabCutoff}; // Cabinet speaker cutoff (${params.cabCutoff}Hz)
+
+  distortion.connect(cabFilter);
+  cabFilter.connect(audioCtx.destination);
+
+  // 2. CHORD STRUM SWEEP
+  const chordFreqs = [110.00, 164.81, 220.00, 329.63]; // A5 Power Chord
+  const strumDelay = ${params.strumDelay / 1000}; // ${params.strumDelay}ms delay between string strikes
+
+  chordFreqs.forEach((freq, index) => {
+    const startTime = now + (index * strumDelay);
+    
+    // Sawtooth provides rich harmonics similar to plucked steel strings
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sawtooth';
+
+    // A. STRING PITCH CHIRP (Initial tension stretch)
+    const pitchMultiplier = ${Math.pow(2, params.pitchChirp / 12).toFixed(3)}; // +${params.pitchChirp} semitones
+    osc.frequency.setValueAtTime(freq * pitchMultiplier, startTime);
+    osc.frequency.exponentialRampToValueAtTime(freq, startTime + ${params.chirpTime / 1000});
+
+    // B. DYNAMIC HARMONIC FILTER (Pick scratch decay)
+    const noteFilter = audioCtx.createBiquadFilter();
+    noteFilter.type = 'lowpass';
+    noteFilter.frequency.setValueAtTime(${params.filterStart}, startTime); // Pick strike brightness
+    noteFilter.frequency.exponentialRampToValueAtTime(${params.filterBody}, startTime + ${params.filterDecay / 1000}); // Settles to body
+
+    // C. AMPLITUDE ENVELOPE (Attack & Sustain)
+    const noteGain = audioCtx.createGain();
+    noteGain.gain.setValueAtTime(0, startTime);
+    noteGain.gain.linearRampToValueAtTime(1.0, startTime + ${params.attack / 1000}); // Pick attack
+    noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + ${(params.attack / 1000 + params.sustainDecay).toFixed(2)}); // String decay
+
+    // Connect Node Chain
+    osc.connect(noteFilter);
+    noteFilter.connect(noteGain);
+    noteGain.connect(distortion);
+
+    osc.start(startTime);
+    osc.stop(startTime + ${(params.attack / 1000 + params.sustainDecay + 0.1).toFixed(2)});
+  });
+}`;
+      document.getElementById('code-output').textContent = code;
+    }
+
+    // --- CANVAS VISUALIZERS ---
+
+    // Canvas 1: Real-time Oscilloscope & Frequency Spectrum
+    const oscCanvas = document.getElementById('canvas-oscilloscope');
+    const oscCtx = oscCanvas.getContext('2d');
+
+    function resizeCanvases() {
+      [oscCanvas, document.getElementById('canvas-pitch-filter'), document.getElementById('canvas-gain')].forEach(canvas => {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+      });
+      drawStaticEnvelopes();
+    }
+
+    function drawOscilloscope() {
+      requestAnimationFrame(drawOscilloscope);
+
+      const w = oscCanvas.width;
+      const h = oscCanvas.height;
+      oscCtx.clearRect(0, 0, w, h);
+
+      // Draw Grid Lines
+      oscCtx.strokeStyle = '#1e293b';
+      oscCtx.lineWidth = 1;
+      oscCtx.beginPath();
+      oscCtx.moveTo(0, h / 2); oscCtx.lineTo(w, h / 2);
+      oscCtx.moveTo(w / 2, 0); oscCtx.lineTo(w / 2, h);
+      oscCtx.stroke();
+
+      if (!analyserNode) return;
+
+      // Draw Frequency Spectrum (Background Fill)
+      const freqData = new Uint8Array(analyserNode.frequencyBinCount);
+      analyserNode.getByteFrequencyData(freqData);
+
+      oscCtx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+      oscCtx.beginPath();
+      const barWidth = w / freqData.length;
+      oscCtx.moveTo(0, h);
+      for (let i = 0; i < freqData.length; i++) {
+        const v = freqData[i] / 255.0;
+        const y = h - (v * h * 0.85);
+        oscCtx.lineTo(i * barWidth * 2, y);
+      }
+      oscCtx.lineTo(w, h);
+      oscCtx.closePath();
+      oscCtx.fill();
+
+      // Draw Time Domain Waveform (Cyan Line)
+      const timeData = new Uint8Array(analyserNode.fftSize);
+      analyserNode.getByteTimeDomainData(timeData);
+
+      oscCtx.lineWidth = 2 * window.devicePixelRatio;
+      oscCtx.strokeStyle = '#22d3ee';
+      oscCtx.beginPath();
+
+      const sliceWidth = w / timeData.length;
+      let x = 0;
+
+      for (let i = 0; i < timeData.length; i++) {
+        const v = timeData[i] / 128.0;
+        const y = (v * h) / 2;
+
+        if (i === 0) oscCtx.moveTo(x, y);
+        else oscCtx.lineTo(x, y);
+
+        x += sliceWidth;
+      }
+      oscCtx.stroke();
+    }
+
+    // Canvas 2 & 3: Parameter Curve Preview Envelopes
+    function drawStaticEnvelopes() {
+      drawPitchFilterCanvas();
+      drawGainCanvas();
+    }
+
+    // Draw Pitch Snap & Filter Sweep Canvas
+    function drawPitchFilterCanvas() {
+      const canvas = document.getElementById('canvas-pitch-filter');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background Grid
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += w / 6) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+      for (let y = 0; y < h; y += h / 4) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+      ctx.stroke();
+
+      // 1. Draw Filter Cutoff Decay (Green Line)
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2.5 * window.devicePixelRatio;
+      ctx.beginPath();
+
+      const maxFilter = 12000;
+      const startY = h - (params.filterStart / maxFilter) * h * 0.85 - (h * 0.05);
+      const endY = h - (params.filterBody / maxFilter) * h * 0.85 - (h * 0.05);
+      const decayX = Math.min(w * 0.9, (params.filterDecay / 800) * w);
+
+      ctx.moveTo(0, startY);
+      // Exponential curve simulation for graph
+      ctx.quadraticCurveTo(decayX * 0.25, endY, decayX, endY);
+      ctx.lineTo(w, endY);
+      ctx.stroke();
+
+      // 2. Draw Pitch Chirp Curve (Amber Line)
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2.5 * window.devicePixelRatio;
+      ctx.beginPath();
+
+      const basePitchY = h * 0.7;
+      const chirpHeight = (params.pitchChirp / 3) * (h * 0.4);
+      const startPitchY = basePitchY - chirpHeight;
+      const chirpX = Math.min(w * 0.8, (params.chirpTime / 200) * w);
+
+      ctx.moveTo(0, startPitchY);
+      ctx.quadraticCurveTo(chirpX * 0.3, basePitchY, chirpX, basePitchY);
+      ctx.lineTo(w, basePitchY);
+      ctx.stroke();
+    }
+
+    // Draw Volume Amplitude ADSR Canvas
+    function drawGainCanvas() {
+      const canvas = document.getElementById('canvas-gain');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += w / 6) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+      for (let y = 0; y < h; y += h / 4) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+      ctx.stroke();
+
+      // Gain Contour (Purple Fill + Line)
+      ctx.strokeStyle = '#c084fc';
+      ctx.fillStyle = 'rgba(192, 132, 252, 0.15)';
+      ctx.lineWidth = 2.5 * window.devicePixelRatio;
+
+      const attackX = Math.max(10, (params.attack / 50) * (w * 0.15));
+      const totalTimeSec = (params.attack / 1000) + params.sustainDecay;
+      const endX = Math.min(w * 0.95, (totalTimeSec / 4.0) * w);
+
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.95);
+      ctx.lineTo(attackX, h * 0.1); // Attack Peak
+      
+      // Exponential decay curve to zero
+      ctx.quadraticCurveTo(attackX + (endX - attackX) * 0.2, h * 0.95, endX, h * 0.95);
+      ctx.lineTo(w, h * 0.95);
+      
+      ctx.stroke();
+      ctx.fill();
+    }
+
+    // --- EVENT LISTENERS & INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      // Setup range inputs event listeners
+      for (let key in paramInputs) {
+        paramInputs[key].addEventListener('input', updateUIValues);
+      }
+
+      // Strum Button Click
+      document.getElementById('btn-trigger').addEventListener('click', playGuitarStroke);
+
+      // Preset buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          setPreset(e.target.dataset.preset);
+          playGuitarStroke();
+        });
+      });
+
+      // Keyboard Hotkeys
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          playGuitarStroke();
+        } else if (e.key === '1') setPreset('heavy');
+        else if (e.key === '2') setPreset('crunch');
+        else if (e.key === '3') setPreset('clean');
+        else if (e.key === '4') setPreset('muted');
+      });
+
+      // Copy Code Button
+      document.getElementById('btn-copy-code').addEventListener('click', () => {
+        const codeText = document.getElementById('code-output').textContent;
+        
+        // Robust clipboard fallback
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(codeText);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = codeText;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+
+        // Show Toast
+        const toast = document.getElementById('toast');
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 2200);
+      });
+
+      // Window Resize Listener
+      window.addEventListener('resize', resizeCanvases);
+
+      // Initial Setup
+      setPreset('heavy');
+      resizeCanvases();
+      drawOscilloscope();
+    });
+  </script>
+</body>
+</html>
